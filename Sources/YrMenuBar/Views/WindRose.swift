@@ -32,19 +32,22 @@ struct WindRose: View {
         .frame(width: arrowLength, height: arrowLength)
     }
 
-    /// Vertical arrow centred at (arrowLength/2, arrowLength/2) pointing UP.
-    /// Rotation is applied by the parent.
+    /// Vertical arrow centred at (size/2, size/2) pointing UP, with the
+    /// portion that would be inside the circle erased so only the head and
+    /// tail stick out beyond the ring.
     private var arrow: some View {
         Canvas { ctx, size in
             let cx = size.width / 2
             let cy = size.height / 2
             let half = arrowLength / 2
+            let shaftWidth: CGFloat = 3.5
 
             // Shaft
             var shaft = Path()
             shaft.move(to: CGPoint(x: cx, y: cy + half))     // bottom
             shaft.addLine(to: CGPoint(x: cx, y: cy - half))  // top (arrow tip)
-            ctx.stroke(shaft, with: .color(.white), lineWidth: 2)
+            ctx.stroke(shaft, with: .color(.white),
+                       style: StrokeStyle(lineWidth: shaftWidth, lineCap: .round))
 
             // Arrowhead at the top
             var head = Path()
@@ -53,6 +56,14 @@ struct WindRose: View {
             head.addLine(to: CGPoint(x: cx + headSize, y: cy - half + headSize * 1.4))
             head.closeSubpath()
             ctx.fill(head, with: .color(.white))
+
+            // Erase the portion of the arrow that overlaps the circle (slightly
+            // larger than the ring so the stroke isn't clipped).
+            ctx.blendMode = .destinationOut
+            let r = diameter / 2 + 1
+            ctx.fill(Path(ellipseIn: CGRect(x: cx - r, y: cy - r,
+                                            width: r * 2, height: r * 2)),
+                     with: .color(.black))
         }
     }
 }
