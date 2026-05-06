@@ -58,8 +58,9 @@ struct CurrentWeatherView: View {
                             .font(.caption2.weight(.medium))
                             .foregroundStyle(.white)
                             .multilineTextAlignment(.center)
-                            .lineLimit(2)
-                            .frame(width: 100)
+                            .lineLimit(3)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(width: 110)
                     }
                 }
                 .padding(.horizontal, 14)
