@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import CoreLocation
 
 struct SettingsView: View {
@@ -13,6 +14,7 @@ struct SettingsView: View {
             GeneralSettings()
                 .tabItem { Label(L10n.t(.sectionGeneral), systemImage: "gearshape") }
         }
+        .tint(Color(NSColor.controlAccentColor))
         .frame(width: 460, height: 420)
     }
 }
@@ -38,8 +40,7 @@ private struct LocationSettings: View {
                         store.updateLocationName()
                         store.refreshIfNeeded(force: true)
                     }))
-                    .toggleStyle(.switch)
-                    .tint(.accentColor)
+                    .toggleStyle(SwitchToggleStyle(tint: Color(NSColor.controlAccentColor)))
 
                 if settings.useGeoLocation {
                     LabeledContent(L10n.t(.authorization)) {
@@ -166,8 +167,7 @@ private struct GeneralSettings: View {
                         launchAtLogin = newValue
                         settings.launchAtLogin = newValue
                     }))
-                    .toggleStyle(.switch)
-                    .tint(.accentColor)
+                    .toggleStyle(SwitchToggleStyle(tint: Color(NSColor.controlAccentColor)))
             }
         }
         .formStyle(.grouped)
