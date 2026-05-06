@@ -19,6 +19,13 @@ struct CurrentWeatherView: View {
                 .frame(maxWidth: .infinity)
                 .opacity(0.95)
 
+            // Bottom scrim to lift legibility of the lower copy.
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.05), .black.opacity(0.35)],
+                startPoint: .top, endPoint: .bottom)
+                .allowsHitTesting(false)
+                .ignoresSafeArea()
+
             VStack(alignment: .leading, spacing: 0) {
                 Spacer().frame(height: 95)
 
@@ -38,7 +45,7 @@ struct CurrentWeatherView: View {
                                 ws: inst?.windSpeed) {
                             Text("\(L10n.t(.feelsLike)) \(f.tempShort(feels))")
                                 .font(.caption)
-                                .foregroundStyle(.white.opacity(0.85))
+                                .foregroundStyle(.white)
                         }
                     }
                     Spacer()
@@ -48,11 +55,11 @@ struct CurrentWeatherView: View {
                                  displaySpeed: windSpeedShort(inst?.windSpeed))
                         Text(windCaption(speed: inst?.windSpeed,
                                          direction: inst?.windFromDirection))
-                            .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.9))
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.white)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
-                            .frame(width: 90)
+                            .frame(width: 100)
                     }
                 }
                 .padding(.horizontal, 14)
@@ -69,8 +76,8 @@ struct CurrentWeatherView: View {
                         Label(f.tempShort(day.maxTemp), systemImage: "arrow.up")
                         Label(f.tempShort(day.minTemp), systemImage: "arrow.down")
                     }
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.92))
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.white)
                     .padding(.horizontal, 14)
                     .padding(.top, 4)
                 }
@@ -84,6 +91,8 @@ struct CurrentWeatherView: View {
                     .padding(.top, 10)
                     .padding(.bottom, 12)
             }
+            // Soft drop-shadow on every text/icon for legibility on the sky.
+            .shadow(color: .black.opacity(0.45), radius: 2, x: 0, y: 1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -118,15 +127,15 @@ struct CurrentWeatherView: View {
     private func precipitationStrip(formatter f: WeatherFormatters) -> some View {
         HStack(spacing: 6) {
             Image(systemName: store.nextHourPrecip ?? 0 > 0 ? "drop.fill" : "drop")
-                .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(.white)
             if let p = store.nextHourPrecip, p > 0.05 {
                 Text("\(L10n.t(.precipNextHour)): \(f.precip(p))")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.95))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.white)
             } else {
                 Text(L10n.t(.dryNextHour))
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.95))
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.white)
             }
             Spacer()
         }
@@ -148,10 +157,15 @@ struct CurrentWeatherView: View {
     @ViewBuilder
     private func chip(_ label: String, _ value: String, icon: String) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: icon).font(.caption2).foregroundStyle(.white.opacity(0.8))
+            Image(systemName: icon).font(.caption2).foregroundStyle(.white)
             VStack(alignment: .leading, spacing: 0) {
-                Text(label).font(.system(size: 9)).foregroundStyle(.white.opacity(0.7))
-                Text(value).font(.caption).foregroundStyle(.white).monospacedDigit()
+                Text(label)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.9))
+                Text(value)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .monospacedDigit()
             }
         }
     }

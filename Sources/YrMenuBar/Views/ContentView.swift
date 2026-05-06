@@ -13,6 +13,13 @@ struct ContentView: View {
             if tab == .now {
                 SkyBackground(symbolCode: store.currentSymbolCode)
                     .ignoresSafeArea()
+                // Slight darkening at top so the header stays legible on bright skies.
+                LinearGradient(
+                    colors: [.black.opacity(0.18), .clear],
+                    startPoint: .top, endPoint: .bottom)
+                    .frame(height: 70)
+                    .allowsHitTesting(false)
+                    .ignoresSafeArea(edges: .top)
             }
             VStack(spacing: 10) {
                 HStack {
@@ -22,8 +29,8 @@ struct ContentView: View {
                             .foregroundStyle(tab == .now ? .white : .primary)
                         if let date = store.fetchedAt {
                             Text("\(L10n.t(.updatedAgo)) \(date, style: .relative)")
-                                .font(.caption2)
-                                .foregroundStyle(tab == .now ? .white.opacity(0.8) : .secondary)
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(tab == .now ? .white : .secondary)
                         }
                     }
                     Spacer()
@@ -37,6 +44,7 @@ struct ContentView: View {
                     .help(L10n.t(.refresh))
                     .disabled(store.isLoading)
                 }
+                .shadow(color: tab == .now ? .black.opacity(0.4) : .clear, radius: 2, y: 1)
                 .padding(.horizontal, 14)
                 .padding(.top, 12)
 
@@ -72,7 +80,8 @@ struct ContentView: View {
                         .buttonStyle(.borderless)
                         .foregroundStyle(tab == .now ? .white : .primary)
                 }
-                .font(.callout)
+                .font(.callout.weight(.medium))
+                .shadow(color: tab == .now ? .black.opacity(0.4) : .clear, radius: 2, y: 1)
                 .padding(.horizontal, 14)
                 .padding(.bottom, 12)
             }
