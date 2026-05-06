@@ -63,6 +63,7 @@ struct ContentView: View {
                     case .forecast: ForecastView().padding(.horizontal, 14)
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
                 if let err = store.errorMessage {
                     Text(err).font(.caption).foregroundStyle(.red).lineLimit(2)
@@ -85,6 +86,7 @@ struct ContentView: View {
                 .padding(.horizontal, 14)
                 .padding(.bottom, 12)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
 }

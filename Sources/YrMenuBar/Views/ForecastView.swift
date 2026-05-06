@@ -32,7 +32,6 @@ struct ForecastView: View {
                 }
             }
         }
-        .frame(maxHeight: 280)
     }
 
     private func dayLabel(_ date: Date) -> String {
