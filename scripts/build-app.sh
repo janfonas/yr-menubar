@@ -46,6 +46,18 @@ chmod +x "$APP/Contents/MacOS/YrMenuBar"
 sed -e "s/__VERSION__/$VERSION/g" -e "s/__BUILD__/$BUILD/g" \
     "$ROOT/Resources/Info.plist" > "$APP/Contents/Info.plist"
 
+# App icon — (re)generate if missing or stale, then copy into the bundle.
+ICNS="$ROOT/Resources/AppIcon.icns"
+if [[ ! -f "$ICNS" || "$ROOT/scripts/generate-icon.swift" -nt "$ICNS" ]]; then
+    echo "==> Generating AppIcon.icns"
+    (cd "$ROOT" && swift scripts/generate-icon.swift >/dev/null)
+fi
+if [[ -f "$ICNS" ]]; then
+    cp "$ICNS" "$APP/Contents/Resources/AppIcon.icns"
+else
+    echo "warning: AppIcon.icns not found, bundle will use the generic icon" >&2
+fi
+
 # Bundle the SwiftPM resource bundle if present
 if [[ ${#ARCH_FLAGS[@]} -gt 0 ]]; then
     BUNDLE_DIR="$(swift build -c release --show-bin-path "${ARCH_FLAGS[@]}")"

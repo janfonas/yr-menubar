@@ -11,3 +11,6 @@ DerivedData/
 *.zip
 Package.resolved
 .vscode/
+# Generated icon assets (re-built by scripts/generate-icon.swift). The
+# .icns is committed so CI builds without needing to run the generator.
+Resources/AppIcon.iconset/
