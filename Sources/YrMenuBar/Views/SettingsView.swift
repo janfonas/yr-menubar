@@ -38,6 +38,8 @@ private struct LocationSettings: View {
                         store.updateLocationName()
                         store.refreshIfNeeded(force: true)
                     }))
+                    .toggleStyle(.switch)
+                    .tint(.accentColor)
 
                 if settings.useGeoLocation {
                     LabeledContent(L10n.t(.authorization)) {
@@ -164,6 +166,8 @@ private struct GeneralSettings: View {
                         launchAtLogin = newValue
                         settings.launchAtLogin = newValue
                     }))
+                    .toggleStyle(.switch)
+                    .tint(.accentColor)
             }
         }
         .formStyle(.grouped)
