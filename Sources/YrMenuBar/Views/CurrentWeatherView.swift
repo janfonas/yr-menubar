@@ -115,28 +115,31 @@ struct CurrentWeatherView: View {
     @ViewBuilder
     private var alertButton: some View {
         let count = alertsStore.alerts.count
+        let tint = WeatherAlertStyle.headerColor(for: alertsStore.alerts)
         Button {
             showAlerts = true
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: 6) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .symbolRenderingMode(.palette)
-                    .foregroundStyle(
-                        .black,
-                        WeatherAlertStyle.headerColor(for: alertsStore.alerts)
-                    )
-                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.black, tint)
+                    .font(.system(size: 30, weight: .bold))
                 if count > 1 {
                     Text("\(count)")
-                        .font(.caption.weight(.bold))
+                        .font(.title3.weight(.heavy))
                         .foregroundStyle(.white)
+                        .monospacedDigit()
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
             .background(
-                Capsule().fill(.black.opacity(0.35))
+                Capsule().fill(.black.opacity(0.40))
             )
+            .overlay(
+                Capsule().stroke(tint.opacity(0.8), lineWidth: 1.5)
+            )
+            .shadow(color: .black.opacity(0.45), radius: 3, x: 0, y: 1)
         }
         .buttonStyle(.plain)
         .help(L10n.t(.weatherAlerts))

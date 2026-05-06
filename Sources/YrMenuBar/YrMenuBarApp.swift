@@ -46,20 +46,19 @@ struct MenuBarLabel: View {
 
     var body: some View {
         let symbol = store.currentSymbolCode
-        // When alerts are present we overlay a small triangle. Using
-        // `symbolRenderingMode(.palette)` so the badge keeps its colour even
-        // though menu-bar items are otherwise rendered as templates.
         if alerts.alerts.isEmpty {
+            // Plain SF Symbol \u2014 macOS will render it as a template so it
+            // adapts to the menu-bar tint (light/dark, focused/unfocused).
             Image(systemName: SFSymbol.from(symbolCode: symbol))
         } else {
-            HStack(spacing: 2) {
+            // When alerts are present we want a *coloured* badge, which means
+            // bypassing the template treatment. We render a SwiftUI ZStack to
+            // an NSImage with isTemplate=false so the red `!` survives.
+            if let nsImage = Self.renderBadge(weatherSymbol: SFSymbol.from(symbolCode: symbol),
+                                              tint: alertBadgeColor(rank: alerts.worstSeverityRank)) {
+                Image(nsImage: nsImage)
+            } else {
                 Image(systemName: SFSymbol.from(symbolCode: symbol))
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(
-                        .black,
-                        alertBadgeColor(rank: alerts.worstSeverityRank)
-                    )
             }
         }
     }
@@ -70,5 +69,31 @@ struct MenuBarLabel: View {
         case 2: return .orange
         default: return Color(red: 0.96, green: 0.80, blue: 0.13)
         }
+    }
+
+    @MainActor
+    private static func renderBadge(weatherSymbol: String, tint: Color) -> NSImage? {
+        let view = ZStack(alignment: .topTrailing) {
+            // Weather symbol in the menu-bar's "label" colour (matches what
+            // template rendering would give us on most macOS appearances).
+            Image(systemName: weatherSymbol)
+                .symbolRenderingMode(.monochrome)
+                .foregroundStyle(Color(NSColor.labelColor))
+                .font(.system(size: 16, weight: .regular))
+                .frame(width: 22, height: 18, alignment: .center)
+            // A bold red `!` badge in the top-right corner.
+            Image(systemName: "exclamationmark.circle.fill")
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(.white, tint)
+                .font(.system(size: 11, weight: .black))
+                .offset(x: 4, y: -3)
+        }
+        .frame(width: 26, height: 18)
+
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
+        guard let nsImage = renderer.nsImage else { return nil }
+        nsImage.isTemplate = false
+        return nsImage
     }
 }
