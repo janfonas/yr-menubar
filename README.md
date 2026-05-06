@@ -1,16 +1,29 @@
 # YrMenuBar
 
-A small macOS menu-bar app that shows current weather and a 7-day forecast from
-[yr.no](https://yr.no) (Norwegian Meteorological Institute) using the public
-[`api.met.no`](https://api.met.no/weatherapi/locationforecast/2.0/documentation) service.
+A small macOS menu-bar app that shows current weather, a 7-day forecast and
+active weather warnings from [yr.no](https://yr.no) (Norwegian Meteorological
+Institute) using the public [`api.met.no`](https://api.met.no/weatherapi/locationforecast/2.0/documentation)
+service.
 
 - SwiftUI `MenuBarExtra` (macOS 14+, Sonoma)
-- Custom Canvas-rendered weather illustrations (sun, clouds, rain, snow, thunder, fog)
+- yr.no-style "Now" view with full-bleed animated sky and Canvas-rendered
+  weather illustrations (sun, clouds, rain, snow, thunder, fog)
+- 90-minute precipitation nowcast (Nordic radar coverage) with a compact
+  inline chart
+- Wind rose with speed, direction, Beaufort name and units (m/s · mph)
+- 7-day forecast with min/max temperature, precipitation totals and
+  Norwegian weekday labels
+- **Weather warnings** from met.no MetAlerts — coloured `!` overlay on the
+  menu-bar icon and a tappable triangle on the Now tab opens a sheet with
+  every active warning (severity, area, advice, possible consequences,
+  link to yr.no)
 - Geo-location via CoreLocation, with a configurable fallback location
-- Metric / imperial units
+  (city search powered by `CLGeocoder`)
+- Metric / imperial units, English / Norwegian (bokmål) UI
 - "Launch at login" toggle (`SMAppService`)
+- Honours the met.no `Last-Modified` / `Expires` headers; coalesces
+  concurrent refreshes
 - No tracking, no analytics, no API key needed
-- Local on-disk forecast cache that respects met.no `Last-Modified` / `Expires` headers
 
 ## Build locally
 
@@ -37,8 +50,16 @@ ad-hoc-codesigns it so Gatekeeper accepts after a right-click → Open.
 
 Open the menu-bar popover → **Settings…**:
 - **Location** — toggle current location, or pick a fallback by city search.
-- **Units** — metric (°C, m/s, mm) or imperial (°F, mph, in).
-- **Startup** — Launch at login.
+- **General** — units (metric/imperial), language (System / English / Norsk
+  bokmål), Launch at login.
+
+### Hidden developer toggle
+
+Option-click the **Language / Språk** section header to enable a persisted
+developer mode. A new **Developer** section appears with a toggle that routes
+the MetAlerts feed to `metalerts/2.0/example.json` so you can preview the
+warning UI (menu-bar `!` overlay and the alerts sheet) without waiting for
+real warnings to be issued.
 
 ## Releasing
 
