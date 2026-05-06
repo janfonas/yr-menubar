@@ -88,4 +88,43 @@ struct WeatherFormatters {
         let idx = Int(((d + 22.5).truncatingRemainder(dividingBy: 360)) / 45) % 8
         return dirs[idx]
     }
+
+    static func windDirectionLong(_ degrees: Double?) -> String {
+        guard let d = degrees else { return "—" }
+        let keys: [L10n.Key] = [.dirN, .dirNE, .dirE, .dirSE, .dirS, .dirSW, .dirW, .dirNW]
+        let idx = Int(((d + 22.5).truncatingRemainder(dividingBy: 360)) / 45) % 8
+        return L10n.t(keys[idx])
+    }
+
+    /// Beaufort name (localized) for a wind speed in m/s.
+    static func beaufortName(_ ms: Double?) -> String {
+        guard let v = ms else { return "—" }
+        let key: L10n.Key
+        switch v {
+        case ..<0.3:  key = .bf0
+        case ..<1.6:  key = .bf1
+        case ..<3.4:  key = .bf2
+        case ..<5.5:  key = .bf3
+        case ..<8.0:  key = .bf4
+        case ..<10.8: key = .bf5
+        case ..<13.9: key = .bf6
+        case ..<17.2: key = .bf7
+        case ..<20.8: key = .bf8
+        case ..<24.5: key = .bf9
+        case ..<28.5: key = .bf10
+        case ..<32.7: key = .bf11
+        default:      key = .bf12
+        }
+        return L10n.t(key)
+    }
+
+    /// Australian Apparent Temperature (Steadman 1994) in °C.
+    /// AT = T + 0.33·e − 0.70·ws − 4.00, where e = (rh/100)·6.105·exp(17.27·T/(237.7+T)).
+    static func apparentTemperature(t: Double?, rh: Double?, ws: Double?) -> Double? {
+        guard let t = t else { return nil }
+        let rh = rh ?? 50
+        let ws = ws ?? 0
+        let e = (rh / 100.0) * 6.105 * exp(17.27 * t / (237.7 + t))
+        return t + 0.33 * e - 0.70 * ws - 4.0
+    }
 }

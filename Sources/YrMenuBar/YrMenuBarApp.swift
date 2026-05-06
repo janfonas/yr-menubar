@@ -12,7 +12,7 @@ struct YrMenuBarApp: App {
                 .environmentObject(settings)
                 .environmentObject(location)
                 .environmentObject(store)
-                .frame(width: 340, height: 460)
+                .frame(width: 360, height: 540)
                 .onAppear {
                     store.configure(settings: settings, location: location)
                     store.refreshIfNeeded()

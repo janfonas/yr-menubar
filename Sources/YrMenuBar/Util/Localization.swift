@@ -39,6 +39,12 @@ enum L10n {
         case today, tomorrow
         case wind, humidity, pressure, precip1h, cloud, uv
         case loading, error
+        case feelsLike, fromDirection
+        case dryNextHour, precipNextHour
+        // Beaufort
+        case bf0, bf1, bf2, bf3, bf4, bf5, bf6, bf7, bf8, bf9, bf10, bf11, bf12
+        // Compass long names
+        case dirN, dirNE, dirE, dirSE, dirS, dirSW, dirW, dirNW
         // Settings sections + labels
         case sectionLocation, sectionUnits, sectionStartup, sectionLanguage
         case useCurrentLocation, authorization, requestAccess
@@ -66,6 +72,31 @@ enum L10n {
             case .uv: return "UV"
             case .loading: return "Loading…"
             case .error: return "Error"
+            case .feelsLike: return "Feels like"
+            case .fromDirection: return "from"
+            case .dryNextHour: return "Dry next hour"
+            case .precipNextHour: return "Precipitation next hour"
+            case .bf0: return "Calm"
+            case .bf1: return "Light air"
+            case .bf2: return "Light breeze"
+            case .bf3: return "Gentle breeze"
+            case .bf4: return "Moderate breeze"
+            case .bf5: return "Fresh breeze"
+            case .bf6: return "Strong breeze"
+            case .bf7: return "Near gale"
+            case .bf8: return "Gale"
+            case .bf9: return "Strong gale"
+            case .bf10: return "Storm"
+            case .bf11: return "Violent storm"
+            case .bf12: return "Hurricane"
+            case .dirN: return "north"
+            case .dirNE: return "north-east"
+            case .dirE: return "east"
+            case .dirSE: return "south-east"
+            case .dirS: return "south"
+            case .dirSW: return "south-west"
+            case .dirW: return "west"
+            case .dirNW: return "north-west"
             case .sectionLocation: return "Location"
             case .sectionUnits: return "Units"
             case .sectionStartup: return "Startup"
@@ -111,6 +142,31 @@ enum L10n {
             case .uv: return "UV"
             case .loading: return "Laster…"
             case .error: return "Feil"
+            case .feelsLike: return "Føles som"
+            case .fromDirection: return "fra"
+            case .dryNextHour: return "Opphold neste time"
+            case .precipNextHour: return "Nedbør neste time"
+            case .bf0: return "Stille"
+            case .bf1: return "Flau vind"
+            case .bf2: return "Svak vind"
+            case .bf3: return "Lett bris"
+            case .bf4: return "Laber bris"
+            case .bf5: return "Frisk bris"
+            case .bf6: return "Liten kuling"
+            case .bf7: return "Stiv kuling"
+            case .bf8: return "Sterk kuling"
+            case .bf9: return "Liten storm"
+            case .bf10: return "Full storm"
+            case .bf11: return "Sterk storm"
+            case .bf12: return "Orkan"
+            case .dirN: return "nord"
+            case .dirNE: return "nordøst"
+            case .dirE: return "øst"
+            case .dirSE: return "sørøst"
+            case .dirS: return "sør"
+            case .dirSW: return "sørvest"
+            case .dirW: return "vest"
+            case .dirNW: return "nordvest"
             case .sectionLocation: return "Posisjon"
             case .sectionUnits: return "Enheter"
             case .sectionStartup: return "Oppstart"
