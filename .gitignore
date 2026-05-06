@@ -1,0 +1,13 @@
+.DS_Store
+.build/
+.swiftpm/
+build/
+dist/
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.app
+*.dmg
+*.zip
+Package.resolved
+.vscode/

@@ -1,0 +1,63 @@
+{
+  "type": "Feature",
+  "geometry": { "type": "Point", "coordinates": [10.7522, 59.9139, 0] },
+  "properties": {
+    "meta": {
+      "updated_at": "2026-05-06T10:00:00Z",
+      "units": {
+        "air_temperature": "celsius",
+        "air_pressure_at_sea_level": "hPa",
+        "wind_speed": "m/s"
+      }
+    },
+    "timeseries": [
+      {
+        "time": "2026-05-06T10:00:00Z",
+        "data": {
+          "instant": {
+            "details": {
+              "air_temperature": 14.2,
+              "air_pressure_at_sea_level": 1013.0,
+              "relative_humidity": 65.0,
+              "wind_speed": 3.4,
+              "wind_from_direction": 220.0,
+              "cloud_area_fraction": 40.0,
+              "ultraviolet_index_clear_sky": 3.1
+            }
+          },
+          "next_1_hours": {
+            "summary": { "symbol_code": "partlycloudy_day" },
+            "details": { "precipitation_amount": 0.0 }
+          },
+          "next_6_hours": {
+            "summary": { "symbol_code": "rain" },
+            "details": {
+              "precipitation_amount": 1.2,
+              "air_temperature_min": 12.0,
+              "air_temperature_max": 16.5
+            }
+          }
+        }
+      },
+      {
+        "time": "2026-05-06T16:00:00Z",
+        "data": {
+          "instant": {
+            "details": {
+              "air_temperature": 15.0,
+              "wind_speed": 2.8,
+              "wind_from_direction": 200.0,
+              "relative_humidity": 60.0,
+              "air_pressure_at_sea_level": 1012.0,
+              "cloud_area_fraction": 70.0
+            }
+          },
+          "next_6_hours": {
+            "summary": { "symbol_code": "cloudy" },
+            "details": { "precipitation_amount": 0.4 }
+          }
+        }
+      }
+    ]
+  }
+}
