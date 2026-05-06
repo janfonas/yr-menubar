@@ -55,6 +55,33 @@ actor MetNoClient {
         let forecast = try decoder.decode(LocationForecast.self, from: data)
         return (forecast, http)
     }
+
+    /// Fetch the precipitation nowcast (next ~90 minutes, 5-min granularity).
+    /// Returns `nil` when the location is outside Nordic radar coverage (HTTP 422).
+    func fetchNowcast(lat: Double, lon: Double) async throws -> Nowcast? {
+        let rLat = (lat * 10000).rounded() / 10000
+        let rLon = (lon * 10000).rounded() / 10000
+        var components = URLComponents(string: "https://api.met.no/weatherapi/nowcast/2.0/complete")!
+        components.queryItems = [
+            URLQueryItem(name: "lat", value: String(format: "%.4f", rLat)),
+            URLQueryItem(name: "lon", value: String(format: "%.4f", rLon))
+        ]
+        var request = URLRequest(url: components.url!)
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw MetNoError.invalidResponse }
+        log.debug("met.no nowcast \(http.statusCode) for \(rLat),\(rLon)")
+        // 422 = outside Nordic coverage; treat as "no data".
+        if http.statusCode == 422 || http.statusCode == 404 { return nil }
+        guard (200..<300).contains(http.statusCode) else {
+            throw MetNoError.httpStatus(http.statusCode)
+        }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(Nowcast.self, from: data)
+    }
 }
 
 enum MetNoError: LocalizedError {

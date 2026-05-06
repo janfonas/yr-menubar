@@ -6,6 +6,7 @@ import os
 @MainActor
 final class WeatherStore: ObservableObject {
     @Published var forecast: LocationForecast?
+    @Published var nowcast: Nowcast?
     @Published var fetchedAt: Date?
     @Published var locationName: String = "—"
     @Published var isLoading: Bool = false
@@ -141,8 +142,11 @@ final class WeatherStore: ObservableObject {
                 fetchedAt: Date(),
                 expiresAt: response.value(forHTTPHeaderField: "Expires").flatMap(Self.parseHTTPDate),
                 lastModified: lastModifiedHeader))
+            // Best-effort nowcast (Nordic radar coverage only).
+            await fetchNowcast(lat: lat, lon: lon)
         } catch MetNoError.notModified {
             self.fetchedAt = Date()
+            await fetchNowcast(lat: lat, lon: lon)
         } catch {
             self.errorMessage = error.localizedDescription
             log.error("fetch failed: \(error.localizedDescription)")
@@ -169,5 +173,13 @@ final class WeatherStore: ObservableObject {
         f.timeZone = TimeZone(identifier: "GMT")
         f.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
         return f.date(from: s)
+    }
+
+    private func fetchNowcast(lat: Double, lon: Double) async {
+        do {
+            self.nowcast = try await MetNoClient.shared.fetchNowcast(lat: lat, lon: lon)
+        } catch {
+            log.debug("nowcast fetch failed (non-fatal): \(error.localizedDescription)")
+        }
     }
 }

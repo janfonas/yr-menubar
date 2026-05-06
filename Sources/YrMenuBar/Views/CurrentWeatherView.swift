@@ -125,20 +125,43 @@ struct CurrentWeatherView: View {
 
     @ViewBuilder
     private func precipitationStrip(formatter f: WeatherFormatters) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: store.nextHourPrecip ?? 0 > 0 ? "drop.fill" : "drop")
-                .foregroundStyle(.white)
-            if let p = store.nextHourPrecip, p > 0.05 {
-                Text("\(L10n.t(.precipNextHour)): \(f.precip(p))")
+        let series = store.nowcast?.precipitationSeries ?? []
+        let hasNowcastRain = series.contains(where: { $0.rate > 0.05 })
+
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: hasNowcastRain || (store.nextHourPrecip ?? 0) > 0
+                      ? "drop.fill" : "drop")
+                    .foregroundStyle(.white)
+                Text(precipitationStatusText(hasNowcastRain: hasNowcastRain,
+                                             series: series, f: f))
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.white)
-            } else {
-                Text(L10n.t(.dryNextHour))
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.white)
+                Spacer()
             }
-            Spacer()
+
+            if !series.isEmpty {
+                PrecipitationChart(series: series)
+            }
         }
+    }
+
+    private func precipitationStatusText(hasNowcastRain: Bool,
+                                         series: [(time: Date, rate: Double)],
+                                         f: WeatherFormatters) -> String {
+        if hasNowcastRain {
+            // mm over the next 90 min: integrate 5-min steps (rate is mm/h).
+            let mm = series.reduce(0.0) { $0 + $1.rate * (5.0 / 60.0) }
+            return "\(L10n.t(.precipNextHour)): \(f.precip(mm))"
+        }
+        if !series.isEmpty {
+            return L10n.t(.dryNextHour)
+        }
+        // Fallback: forecast next-hour precipitation
+        if let p = store.nextHourPrecip, p > 0.05 {
+            return "\(L10n.t(.precipNextHour)): \(f.precip(p))"
+        }
+        return L10n.t(.dryNextHour)
     }
 
     @ViewBuilder
