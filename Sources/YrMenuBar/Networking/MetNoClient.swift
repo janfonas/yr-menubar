@@ -24,15 +24,16 @@ actor MetNoClient {
     }
 
     func fetch(lat: Double, lon: Double, ifModifiedSince: String? = nil) async throws -> (LocationForecast, HTTPURLResponse) {
-        // round to 4 decimals per met.no recommendation
-        let rLat = (lat * 10000).rounded() / 10000
-        let rLon = (lon * 10000).rounded() / 10000
-        var components = URLComponents(string: "https://api.met.no/weatherapi/locationforecast/2.0/compact")!
+        let (rLat, rLon) = Self.roundedCoordinates(lat: lat, lon: lon)
+        guard var components = URLComponents(string: "https://api.met.no/weatherapi/locationforecast/2.0/compact") else {
+            throw MetNoError.invalidResponse
+        }
         components.queryItems = [
             URLQueryItem(name: "lat", value: String(format: "%.4f", rLat)),
             URLQueryItem(name: "lon", value: String(format: "%.4f", rLon))
         ]
-        var request = URLRequest(url: components.url!)
+        guard let url = components.url else { throw MetNoError.invalidResponse }
+        var request = URLRequest(url: url)
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let ims = ifModifiedSince {
@@ -59,14 +60,16 @@ actor MetNoClient {
     /// Fetch the precipitation nowcast (next ~90 minutes, 5-min granularity).
     /// Returns `nil` when the location is outside Nordic radar coverage (HTTP 422).
     func fetchNowcast(lat: Double, lon: Double) async throws -> Nowcast? {
-        let rLat = (lat * 10000).rounded() / 10000
-        let rLon = (lon * 10000).rounded() / 10000
-        var components = URLComponents(string: "https://api.met.no/weatherapi/nowcast/2.0/complete")!
+        let (rLat, rLon) = Self.roundedCoordinates(lat: lat, lon: lon)
+        guard var components = URLComponents(string: "https://api.met.no/weatherapi/nowcast/2.0/complete") else {
+            throw MetNoError.invalidResponse
+        }
         components.queryItems = [
             URLQueryItem(name: "lat", value: String(format: "%.4f", rLat)),
             URLQueryItem(name: "lon", value: String(format: "%.4f", rLon))
         ]
-        var request = URLRequest(url: components.url!)
+        guard let url = components.url else { throw MetNoError.invalidResponse }
+        var request = URLRequest(url: url)
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
@@ -81,6 +84,14 @@ actor MetNoClient {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode(Nowcast.self, from: data)
+    }
+
+    /// Round to the decimals required by met.no (default 4) so cache keys match
+    /// and the API doesn't reject overly precise queries.
+    private static func roundedCoordinates(lat: Double, lon: Double) -> (Double, Double) {
+        let factor = pow(10.0, Double(Constants.coordinateDecimals))
+        return ((lat * factor).rounded() / factor,
+                (lon * factor).rounded() / factor)
     }
 }
 

@@ -3,33 +3,40 @@ import SwiftUI
 /// yr.no app-style wind indicator: a ringed circle with the wind speed in the
 /// centre, and a single straight arrow passing across the circle. The arrow
 /// head points in the direction the wind is going (= from + 180°); the tail
-/// sticks out the opposite side.
+/// sticks out the opposite side. A small unit label sits under the circle.
 struct WindRose: View {
     let speedMs: Double?
     let fromDirectionDegrees: Double?
     let displaySpeed: String
+    let unitLabel: String
 
     private let diameter: CGFloat = 44
     private let arrowLength: CGFloat = 64   // longer than the diameter, so it pokes out both sides
     private let headSize: CGFloat = 8
 
     var body: some View {
-        ZStack {
-            // Arrow first, so the circle outline draws over it where they intersect.
-            arrow
-                .rotationEffect(.degrees((fromDirectionDegrees ?? 0) + 180))
-                .opacity(fromDirectionDegrees == nil ? 0.3 : 1)
+        VStack(spacing: 2) {
+            ZStack {
+                // Arrow first, so the circle outline draws over it where they intersect.
+                arrow
+                    .rotationEffect(.degrees((fromDirectionDegrees ?? 0) + 180))
+                    .opacity(fromDirectionDegrees == nil ? 0.3 : 1)
 
-            Circle()
-                .strokeBorder(Color.white, lineWidth: 1.5)
-                .frame(width: diameter, height: diameter)
+                Circle()
+                    .strokeBorder(Color.white, lineWidth: 1.5)
+                    .frame(width: diameter, height: diameter)
 
-            Text(displaySpeed)
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white)
-                .monospacedDigit()
+                Text(displaySpeed)
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .monospacedDigit()
+            }
+            .frame(width: arrowLength, height: arrowLength)
+
+            Text(unitLabel)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(.white.opacity(0.85))
         }
-        .frame(width: arrowLength, height: arrowLength)
     }
 
     /// Vertical arrow centred at (size/2, size/2) pointing UP, with the

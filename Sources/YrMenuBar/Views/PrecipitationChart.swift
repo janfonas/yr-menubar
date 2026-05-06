@@ -2,31 +2,42 @@ import SwiftUI
 
 /// 90-minute precipitation mini-chart matching yr.no's app: filled blue
 /// area showing precipitation intensity (mm/h) over 5-min steps.
+/// When the entire series is below `minDisplayRate` the chart collapses
+/// to a single dry baseline rather than two stranded grid lines.
 struct PrecipitationChart: View {
     let series: [(time: Date, rate: Double)]
-    /// Y-axis ceiling. Auto-derived from data with sane minimum.
-    var maxRate: Double {
+
+    /// Below this rate (mm/h) the series is considered "dry" and the chart
+    /// hides the gridlines, drawing only a faint baseline.
+    private let minDisplayRate: Double = 0.05
+
+    private var hasRain: Bool {
+        series.contains(where: { $0.rate >= minDisplayRate })
+    }
+
+    /// Y-axis ceiling. Auto-derived from data with sane scale steps.
+    private var maxRate: Double {
         let m = series.map(\.rate).max() ?? 0
-        // Round up to a nice scale: 0.5, 1, 2, 4, 8 mm/h
         let ceilings: [Double] = [0.5, 1, 2, 4, 8, 16]
-        return ceilings.first(where: { $0 >= max(m, 0.1) }) ?? 16
+        return ceilings.first(where: { $0 >= max(m, minDisplayRate) }) ?? 16
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             GeometryReader { geo in
                 ZStack(alignment: .bottomLeading) {
-                    // Y-axis grid lines
-                    VStack(spacing: 0) {
-                        ForEach(0..<3) { i in
-                            Divider()
-                                .background(Color.white.opacity(0.25))
-                            if i < 2 { Spacer() }
+                    if hasRain {
+                        // Two faint horizontal grid lines (1/3 and 2/3) only when there's rain.
+                        VStack(spacing: 0) {
+                            ForEach(0..<2) { _ in
+                                Spacer()
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.18))
+                                    .frame(height: 0.5)
+                            }
+                            Spacer()
                         }
-                    }
 
-                    // Area chart (filled), drawn even when all zeros so the axis is visible.
-                    if !series.isEmpty {
                         chartShape(in: geo.size)
                             .fill(LinearGradient(
                                 colors: [Color.white.opacity(0.85),
@@ -34,14 +45,19 @@ struct PrecipitationChart: View {
                                 startPoint: .top, endPoint: .bottom))
                         chartShape(in: geo.size, asLine: true)
                             .stroke(Color.white, lineWidth: 1.5)
+                    } else {
+                        // Single dry baseline at the bottom.
+                        Rectangle()
+                            .fill(Color.white.opacity(0.35))
+                            .frame(height: 1)
                     }
                 }
             }
-            .frame(height: 50)
+            .frame(height: hasRain ? 50 : 12)
 
-            // Time axis labels: now / +30 / +60 / +90
+            // Time axis labels.
             HStack {
-                Text("nå").font(.system(size: 9)).foregroundStyle(.white.opacity(0.85))
+                Text(L10n.t(.now).lowercased()).font(.system(size: 9)).foregroundStyle(.white.opacity(0.85))
                 Spacer()
                 Text("+30").font(.system(size: 9)).foregroundStyle(.white.opacity(0.85))
                 Spacer()

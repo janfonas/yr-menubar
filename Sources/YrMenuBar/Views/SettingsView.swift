@@ -57,7 +57,7 @@ private struct LocationSettings: View {
             Section(L10n.t(.fallbackLocation)) {
                 LabeledContent(L10n.t(.searchCity)) {
                     HStack {
-                        TextField("", text: $searchQuery, prompt: Text(L10n.t(.searchCity)))
+                        TextField("", text: $searchQuery)
                             .textFieldStyle(.roundedBorder)
                             .onSubmit(search)
                         Button(L10n.t(.searchButton), action: search)

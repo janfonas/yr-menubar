@@ -8,27 +8,29 @@ struct ForecastView: View {
         let f = WeatherFormatters(units: settings.unitSystem)
         let days = store.dailySummaries(days: 7)
         ScrollView {
-            VStack(spacing: 4) {
+            VStack(spacing: 2) {
                 ForEach(days) { day in
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         WeatherCanvas(symbolCode: day.symbolCode)
-                            .frame(width: 36, height: 36)
+                            .frame(width: 30, height: 30)
                         Text(dayLabel(day.date))
                             .font(.callout)
-                            .frame(width: 56, alignment: .leading)
+                            .lineLimit(1)
+                            .frame(width: 70, alignment: .leading)
                         Spacer()
                         Label(f.precip(day.precipitation), systemImage: "drop")
                             .labelStyle(.titleAndIcon)
                             .font(.caption)
                             .foregroundStyle(.blue)
                             .frame(width: 70, alignment: .trailing)
+                            .monospacedDigit()
                         Text("\(f.tempShort(day.minTemp)) / \(f.tempShort(day.maxTemp))")
                             .font(.callout).monospacedDigit()
                             .frame(width: 80, alignment: .trailing)
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
                     .padding(.horizontal, 6)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(.quaternary.opacity(0.3)))
+                    .background(RoundedRectangle(cornerRadius: 6).fill(.quaternary.opacity(0.3)))
                 }
             }
         }

@@ -16,16 +16,18 @@ final class WeatherStore: ObservableObject {
     private weak var location: LocationProvider?
     private var cancellables = Set<AnyCancellable>()
     private var refreshTask: Task<Void, Never>?
+    private var inFlightFetch: Task<Void, Never>?
+    private var nextRefreshAt: Date?
     private var lastModifiedHeader: String?
     private var lastFetchKey: String?
     private let log = Logger(subsystem: "com.janfonas.YrMenuBar", category: "WeatherStore")
-    private let minimumInterval: TimeInterval = 15 * 60
 
     init() {
         if let cached = ForecastCache.load() {
             self.forecast = cached.forecast
             self.fetchedAt = cached.fetchedAt
             self.lastModifiedHeader = cached.lastModified
+            self.nextRefreshAt = cached.expiresAt
         }
     }
 
@@ -48,11 +50,24 @@ final class WeatherStore: ObservableObject {
         updateLocationName()
     }
 
+    /// Schedule the next refresh based on the server-provided `Expires` header
+    /// when available, otherwise fall back to the minimum interval. Capped at
+    /// `Constants.maximumRefreshInterval` so we never go silent for too long.
     private func startTimer() {
         refreshTask?.cancel()
         refreshTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: UInt64(15 * 60 * 1_000_000_000))
+                let delay = await MainActor.run { () -> TimeInterval in
+                    guard let self = self else { return Constants.minimumRefreshInterval }
+                    if let next = self.nextRefreshAt {
+                        let interval = next.timeIntervalSinceNow
+                        return min(max(interval, Constants.minimumRefreshInterval),
+                                   Constants.maximumRefreshInterval)
+                    }
+                    return Constants.minimumRefreshInterval
+                }
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                if Task.isCancelled { break }
                 await MainActor.run { self?.refreshIfNeeded(force: false) }
             }
         }
@@ -115,11 +130,20 @@ final class WeatherStore: ObservableObject {
         let key = String(format: "%.3f,%.3f", coord.0, coord.1)
         if !force,
            let fetchedAt = fetchedAt,
-           Date().timeIntervalSince(fetchedAt) < minimumInterval,
+           Date().timeIntervalSince(fetchedAt) < Constants.minimumRefreshInterval,
            lastFetchKey == key {
             return
         }
-        Task { await self.fetch(lat: coord.0, lon: coord.1, name: coord.2, key: key) }
+        // Request coalescing: if a fetch is already running, drop this one
+        // unless it's a forced refresh and the in-flight task is finishing.
+        if let inFlight = inFlightFetch, !inFlight.isCancelled {
+            if !force { return }
+            inFlight.cancel()
+        }
+        inFlightFetch = Task { [weak self] in
+            await self?.fetch(lat: coord.0, lon: coord.1, name: coord.2, key: key)
+            self?.inFlightFetch = nil
+        }
     }
 
     private func fetch(lat: Double, lon: Double, name: String, key: String) async {
@@ -137,16 +161,22 @@ final class WeatherStore: ObservableObject {
             if let lm = response.value(forHTTPHeaderField: "Last-Modified") {
                 self.lastModifiedHeader = lm
             }
+            let expires = response.value(forHTTPHeaderField: "Expires").flatMap(Self.parseHTTPDate)
+            self.nextRefreshAt = expires
             ForecastCache.save(CachedForecast(
                 forecast: forecast, lat: lat, lon: lon,
                 fetchedAt: Date(),
-                expiresAt: response.value(forHTTPHeaderField: "Expires").flatMap(Self.parseHTTPDate),
+                expiresAt: expires,
                 lastModified: lastModifiedHeader))
             // Best-effort nowcast (Nordic radar coverage only).
             await fetchNowcast(lat: lat, lon: lon)
+            // Reschedule the timer to honour the new `Expires` window.
+            startTimer()
         } catch MetNoError.notModified {
             self.fetchedAt = Date()
             await fetchNowcast(lat: lat, lon: lon)
+        } catch is CancellationError {
+            // Superseded by another refresh; stay quiet.
         } catch {
             self.errorMessage = error.localizedDescription
             log.error("fetch failed: \(error.localizedDescription)")
@@ -178,6 +208,12 @@ final class WeatherStore: ObservableObject {
     private func fetchNowcast(lat: Double, lon: Double) async {
         do {
             self.nowcast = try await MetNoClient.shared.fetchNowcast(lat: lat, lon: lon)
+        } catch is CancellationError {
+            // ignored
+        } catch let MetNoError.httpStatus(code) {
+            // 4xx that aren't 422/404 are surfaced; 5xx are logged but kept quiet
+            // because the forecast is the primary signal.
+            log.notice("nowcast HTTP \(code)")
         } catch {
             log.debug("nowcast fetch failed (non-fatal): \(error.localizedDescription)")
         }

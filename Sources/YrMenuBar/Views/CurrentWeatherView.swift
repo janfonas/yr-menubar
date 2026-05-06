@@ -52,13 +52,14 @@ struct CurrentWeatherView: View {
                     VStack(spacing: 4) {
                         WindRose(speedMs: inst?.windSpeed,
                                  fromDirectionDegrees: inst?.windFromDirection,
-                                 displaySpeed: windSpeedShort(inst?.windSpeed))
+                                 displaySpeed: windSpeedShort(inst?.windSpeed),
+                                 unitLabel: settings.unitSystem == .metric ? "m/s" : "mph")
                         Text(windCaption(speed: inst?.windSpeed,
                                          direction: inst?.windFromDirection))
                             .font(.caption2.weight(.medium))
                             .foregroundStyle(.white)
                             .multilineTextAlignment(.center)
-                            .lineLimit(3)
+                            .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(width: 110)
                     }
@@ -120,8 +121,7 @@ struct CurrentWeatherView: View {
         let bf = WeatherFormatters.beaufortName(speed)
         guard let _ = direction else { return bf }
         let dir = WeatherFormatters.windDirectionLong(direction)
-        let unit = settings.unitSystem == .metric ? "m/s" : "mph"
-        return "\(bf) \(L10n.t(.fromDirection)) \(dir) (\(unit))"
+        return "\(bf) \(L10n.t(.fromDirection)) \(dir)"
     }
 
     @ViewBuilder
@@ -169,23 +169,31 @@ struct CurrentWeatherView: View {
     private func detailGrid(inst: LocationForecast.InstantDetails?,
                             formatter f: WeatherFormatters) -> some View {
         let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
-        LazyVGrid(columns: columns, alignment: .leading, spacing: 6) {
+        LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
             chip(L10n.t(.humidity), f.humidity(inst?.relativeHumidity), icon: "humidity")
             chip(L10n.t(.pressure), f.pressure(inst?.airPressureAtSeaLevel), icon: "gauge")
             chip(L10n.t(.uv),
                  inst?.uvIndexClearSky.map { String(format: "%.1f", $0) } ?? "—",
                  icon: "sun.max")
         }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.white.opacity(0.12))
+        )
     }
 
     @ViewBuilder
     private func chip(_ label: String, _ value: String, icon: String) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon).font(.caption2).foregroundStyle(.white)
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(.white)
+                .frame(width: 16)
             VStack(alignment: .leading, spacing: 0) {
                 Text(label)
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(.white.opacity(0.85))
                 Text(value)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.white)
