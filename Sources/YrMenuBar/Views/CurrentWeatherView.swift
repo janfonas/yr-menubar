@@ -14,7 +14,7 @@ struct CurrentWeatherView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(f.temperature(inst?.airTemperature))
                         .font(.system(size: 38, weight: .semibold, design: .rounded))
-                    Text(humanReadable(store.currentSymbolCode))
+                    Text(L10n.describe(symbolCode: store.currentSymbolCode))
                         .font(.subheadline).foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -23,14 +23,14 @@ struct CurrentWeatherView: View {
             Divider()
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                metric("Wind",
+                metric(L10n.t(.wind),
                        value: "\(f.wind(inst?.windSpeed)) \(WeatherFormatters.windDirectionLabel(inst?.windFromDirection))",
                        icon: "wind")
-                metric("Humidity", value: f.humidity(inst?.relativeHumidity), icon: "humidity")
-                metric("Pressure", value: f.pressure(inst?.airPressureAtSeaLevel), icon: "gauge")
-                metric("Precip (1h)", value: f.precip(store.nextHourPrecip), icon: "drop")
-                metric("Cloud", value: f.humidity(inst?.cloudAreaFraction), icon: "cloud")
-                metric("UV", value: inst?.uvIndexClearSky.map { String(format: "%.1f", $0) } ?? "—", icon: "sun.max")
+                metric(L10n.t(.humidity), value: f.humidity(inst?.relativeHumidity), icon: "humidity")
+                metric(L10n.t(.pressure), value: f.pressure(inst?.airPressureAtSeaLevel), icon: "gauge")
+                metric(L10n.t(.precip1h), value: f.precip(store.nextHourPrecip), icon: "drop")
+                metric(L10n.t(.cloud), value: f.humidity(inst?.cloudAreaFraction), icon: "cloud")
+                metric(L10n.t(.uv), value: inst?.uvIndexClearSky.map { String(format: "%.1f", $0) } ?? "—", icon: "sun.max")
             }
         }
     }
@@ -45,14 +45,5 @@ struct CurrentWeatherView: View {
             }
             Spacer()
         }
-    }
-
-    private func humanReadable(_ code: String?) -> String {
-        guard let c = code else { return "—" }
-        let base = c.replacingOccurrences(of: "_day", with: "")
-                    .replacingOccurrences(of: "_night", with: "")
-                    .replacingOccurrences(of: "_polartwilight", with: "")
-                    .replacingOccurrences(of: "_", with: " ")
-        return base.prefix(1).uppercased() + base.dropFirst()
     }
 }

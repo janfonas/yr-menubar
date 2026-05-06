@@ -37,9 +37,9 @@ struct ForecastView: View {
 
     private func dayLabel(_ date: Date) -> String {
         let cal = Calendar.current
-        if cal.isDateInToday(date) { return "Today" }
-        if cal.isDateInTomorrow(date) { return "Tom." }
-        let fmt = DateFormatter(); fmt.dateFormat = "EEE"
-        return fmt.string(from: date)
+        if cal.isDateInToday(date) { return L10n.t(.today) }
+        if cal.isDateInTomorrow(date) { return L10n.t(.tomorrow) }
+        let fmt = DateFormatter(); fmt.locale = L10n.locale; fmt.dateFormat = "EEE"
+        return fmt.string(from: date).capitalized
     }
 }

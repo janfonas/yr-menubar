@@ -12,8 +12,8 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Location") {
-                Toggle("Use current location", isOn: Binding(
+            Section(L10n.t(.sectionLocation)) {
+                Toggle(L10n.t(.useCurrentLocation), isOn: Binding(
                     get: { settings.useGeoLocation },
                     set: { newValue in
                         settings.useGeoLocation = newValue
@@ -24,45 +24,58 @@ struct SettingsView: View {
 
                 if settings.useGeoLocation {
                     HStack {
-                        Text("Authorization:")
+                        Text(L10n.t(.authorization))
                         Text(authText).foregroundStyle(.secondary)
                         Spacer()
                         if location.authorizationStatus == .notDetermined {
-                            Button("Request access") { location.requestAuthorization() }
+                            Button(L10n.t(.requestAccess)) { location.requestAuthorization() }
                         }
                     }
                 }
 
                 Divider()
-                Text("Fallback location").font(.caption).foregroundStyle(.secondary)
+                Text(L10n.t(.fallbackLocation)).font(.caption).foregroundStyle(.secondary)
                 HStack {
-                    TextField("Search city…", text: $searchQuery, onCommit: search)
-                    Button("Search", action: search).disabled(searchQuery.isEmpty)
+                    TextField(L10n.t(.searchCity), text: $searchQuery, onCommit: search)
+                    Button(L10n.t(.searchButton), action: search).disabled(searchQuery.isEmpty)
                 }
                 if let e = searchError {
                     Text(e).font(.caption).foregroundStyle(.red)
                 }
 
                 HStack {
-                    TextField("Name", text: Binding(get: { settings.fallbackName }, set: { settings.fallbackName = $0 }))
-                    TextField("Lat", value: Binding(get: { settings.fallbackLatitude }, set: { settings.fallbackLatitude = $0 }), format: .number)
+                    TextField(L10n.t(.name), text: Binding(get: { settings.fallbackName }, set: { settings.fallbackName = $0 }))
+                    TextField(L10n.t(.lat), value: Binding(get: { settings.fallbackLatitude }, set: { settings.fallbackLatitude = $0 }), format: .number)
                         .frame(width: 80)
-                    TextField("Lon", value: Binding(get: { settings.fallbackLongitude }, set: { settings.fallbackLongitude = $0 }), format: .number)
+                    TextField(L10n.t(.lon), value: Binding(get: { settings.fallbackLongitude }, set: { settings.fallbackLongitude = $0 }), format: .number)
                         .frame(width: 80)
                 }
             }
 
-            Section("Units") {
-                Picker("Units", selection: Binding(
+            Section(L10n.t(.sectionUnits)) {
+                Picker(L10n.t(.unitsLabel), selection: Binding(
                     get: { settings.unitSystem },
                     set: { settings.unitSystem = $0 })) {
-                    ForEach(UnitSystem.allCases) { u in Text(u.label).tag(u) }
+                    ForEach(UnitSystem.allCases) { u in
+                        Text(u == .metric ? L10n.t(.unitsMetric) : L10n.t(.unitsImperial)).tag(u)
+                    }
                 }
                 .pickerStyle(.radioGroup)
             }
 
-            Section("Startup") {
-                Toggle("Launch at login", isOn: Binding(
+            Section(L10n.t(.sectionLanguage)) {
+                Picker(L10n.t(.language), selection: Binding(
+                    get: { settings.language },
+                    set: { settings.language = $0 })) {
+                    ForEach(AppLanguage.allCases) { lang in
+                        Text(lang.displayName).tag(lang)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+            }
+
+            Section(L10n.t(.sectionStartup)) {
+                Toggle(L10n.t(.launchAtLogin), isOn: Binding(
                     get: { launchAtLogin },
                     set: { newValue in
                         launchAtLogin = newValue
@@ -78,11 +91,11 @@ struct SettingsView: View {
 
     private var authText: String {
         switch location.authorizationStatus {
-        case .notDetermined: return "Not determined"
-        case .restricted: return "Restricted"
-        case .denied: return "Denied"
-        case .authorizedAlways, .authorized: return "Authorized"
-        @unknown default: return "Unknown"
+        case .notDetermined: return L10n.t(.authNotDetermined)
+        case .restricted: return L10n.t(.authRestricted)
+        case .denied: return L10n.t(.authDenied)
+        case .authorizedAlways, .authorized: return L10n.t(.authAuthorized)
+        @unknown default: return L10n.t(.authUnknown)
         }
     }
 
@@ -96,7 +109,7 @@ struct SettingsView: View {
                 return
             }
             guard let p = placemarks?.first, let loc = p.location else {
-                DispatchQueue.main.async { searchError = "No results" }
+                DispatchQueue.main.async { searchError = L10n.t(.noResults) }
                 return
             }
             DispatchQueue.main.async {

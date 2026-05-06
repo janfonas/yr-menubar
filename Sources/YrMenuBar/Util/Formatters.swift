@@ -82,7 +82,9 @@ struct WeatherFormatters {
 
     static func windDirectionLabel(_ degrees: Double?) -> String {
         guard let d = degrees else { return "—" }
-        let dirs = ["N","NE","E","SE","S","SW","W","NW"]
+        let enDirs = ["N","NE","E","SE","S","SW","W","NW"]
+        let nbDirs = ["N","NØ","Ø","SØ","S","SV","V","NV"]
+        let dirs = AppLanguage.resolved == .nb ? nbDirs : enDirs
         let idx = Int(((d + 22.5).truncatingRemainder(dividingBy: 360)) / 45) % 8
         return dirs[idx]
     }

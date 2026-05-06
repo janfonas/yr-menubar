@@ -5,7 +5,7 @@ struct ContentView: View {
     @EnvironmentObject var settings: AppSettings
     @State private var tab: Tab = .now
 
-    enum Tab: String, CaseIterable { case now = "Now"; case forecast = "7-day" }
+    enum Tab: String, CaseIterable { case now, forecast }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -13,7 +13,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(store.locationName).font(.headline)
                     if let date = store.fetchedAt {
-                        Text("Updated \(date, style: .relative) ago")
+                        Text("\(L10n.t(.updatedAgo)) \(date, style: .relative)")
                             .font(.caption2).foregroundStyle(.secondary)
                     }
                 }
@@ -24,11 +24,14 @@ struct ContentView: View {
                     Image(systemName: "arrow.clockwise")
                 }
                 .buttonStyle(.borderless)
+                .help(L10n.t(.refresh))
                 .disabled(store.isLoading)
             }
 
             Picker("", selection: $tab) {
-                ForEach(Tab.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                ForEach(Tab.allCases, id: \.self) { t in
+                    Text(t == .now ? L10n.t(.now) : L10n.t(.sevenDay)).tag(t)
+                }
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -46,11 +49,11 @@ struct ContentView: View {
 
             HStack {
                 SettingsLink {
-                    Label("Settings…", systemImage: "gear")
+                    Label(L10n.t(.settings), systemImage: "gear")
                 }
                 .buttonStyle(.borderless)
                 Spacer()
-                Button("Quit") { NSApp.terminate(nil) }
+                Button(L10n.t(.quit)) { NSApp.terminate(nil) }
                     .buttonStyle(.borderless)
             }
             .font(.callout)

@@ -18,10 +18,16 @@ final class AppSettings: ObservableObject {
     @AppStorage("fallbackLongitude") var fallbackLongitude: Double = 10.7522
     @AppStorage("fallbackName") var fallbackName: String = "Oslo"
     @AppStorage("launchAtLogin") var launchAtLoginStored: Bool = false
+    @AppStorage("appLanguage") var languageRaw: String = AppLanguage.system.rawValue
 
     var unitSystem: UnitSystem {
         get { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
         set { unitSystemRaw = newValue.rawValue }
+    }
+
+    var language: AppLanguage {
+        get { AppLanguage(rawValue: languageRaw) ?? .system }
+        set { languageRaw = newValue.rawValue; objectWillChange.send() }
     }
 
     var launchAtLogin: Bool {
