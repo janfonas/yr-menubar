@@ -46,7 +46,7 @@ enum L10n {
         // Compass long names
         case dirN, dirNE, dirE, dirSE, dirS, dirSW, dirW, dirNW
         // Settings sections + labels
-        case sectionLocation, sectionUnits, sectionStartup, sectionLanguage
+        case sectionLocation, sectionUnits, sectionStartup, sectionLanguage, sectionGeneral
         case useCurrentLocation, authorization, requestAccess
         case authNotDetermined, authRestricted, authDenied, authAuthorized, authUnknown
         case fallbackLocation, searchCity, searchButton, name, lat, lon, noResults
@@ -100,6 +100,7 @@ enum L10n {
             case .sectionLocation: return "Location"
             case .sectionUnits: return "Units"
             case .sectionStartup: return "Startup"
+            case .sectionGeneral: return "General"
             case .sectionLanguage: return "Language"
             case .useCurrentLocation: return "Use current location"
             case .authorization: return "Authorization:"
@@ -170,6 +171,7 @@ enum L10n {
             case .sectionLocation: return "Posisjon"
             case .sectionUnits: return "Enheter"
             case .sectionStartup: return "Oppstart"
+            case .sectionGeneral: return "Generelt"
             case .sectionLanguage: return "Språk"
             case .useCurrentLocation: return "Bruk nåværende posisjon"
             case .authorization: return "Tilgang:"

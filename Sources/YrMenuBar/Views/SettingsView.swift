@@ -11,7 +11,7 @@ struct SettingsView: View {
             LocationSettings()
                 .tabItem { Label(L10n.t(.sectionLocation), systemImage: "location") }
             GeneralSettings()
-                .tabItem { Label(L10n.t(.sectionUnits), systemImage: "gauge") }
+                .tabItem { Label(L10n.t(.sectionGeneral), systemImage: "gearshape") }
         }
         .frame(width: 460, height: 420)
     }
