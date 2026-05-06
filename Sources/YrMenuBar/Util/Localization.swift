@@ -53,6 +53,8 @@ enum L10n {
         case unitsLabel, unitsMetric, unitsImperial
         case launchAtLogin
         case language
+        // Alerts
+        case weatherAlerts, noAlerts, alertInstruction, alertConsequences, readMore
 
         var en: String {
             switch self {
@@ -122,6 +124,11 @@ enum L10n {
             case .unitsImperial: return "Imperial (°F, mph, in)"
             case .launchAtLogin: return "Launch at login"
             case .language: return "Language"
+            case .weatherAlerts: return "Weather warnings"
+            case .noAlerts: return "No active warnings."
+            case .alertInstruction: return "Advice"
+            case .alertConsequences: return "Possible consequences"
+            case .readMore: return "Read more on yr.no"
             }
         }
 
@@ -193,6 +200,11 @@ enum L10n {
             case .unitsImperial: return "Imperial (°F, mph, in)"
             case .launchAtLogin: return "Start ved pålogging"
             case .language: return "Språk"
+            case .weatherAlerts: return "Farevarsler"
+            case .noAlerts: return "Ingen aktive varsler."
+            case .alertInstruction: return "Råd"
+            case .alertConsequences: return "Mulige konsekvenser"
+            case .readMore: return "Les mer på yr.no"
             }
         }
     }

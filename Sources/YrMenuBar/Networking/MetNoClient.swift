@@ -86,6 +86,42 @@ actor MetNoClient {
         return try decoder.decode(Nowcast.self, from: data)
     }
 
+    /// Fetch active MetAlerts (weather warnings) covering the given coordinate.
+    ///
+    /// Uses the GeoJSON beta endpoint so we get all relevant fields in one
+    /// request without having to chase per-CAP XML files. Returns an empty
+    /// array when the API has no active warnings for the location.
+    func fetchAlerts(lat: Double, lon: Double, languageCode: String) async throws -> [WeatherAlert] {
+        let (rLat, rLon) = Self.roundedCoordinates(lat: lat, lon: lon)
+        guard var components = URLComponents(string: "https://api.met.no/weatherapi/metalerts/2.0/current.json") else {
+            throw MetNoError.invalidResponse
+        }
+        // The MetAlerts API only accepts "no" or "en" for `lang`.
+        let lang = (languageCode == "nb" || languageCode == "nn" || languageCode == "no") ? "no" : "en"
+        components.queryItems = [
+            URLQueryItem(name: "lat", value: String(format: "%.4f", rLat)),
+            URLQueryItem(name: "lon", value: String(format: "%.4f", rLon)),
+            URLQueryItem(name: "lang", value: lang)
+        ]
+        guard let url = components.url else { throw MetNoError.invalidResponse }
+        var request = URLRequest(url: url)
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw MetNoError.invalidResponse }
+        log.debug("met.no metalerts \(http.statusCode) for \(rLat),\(rLon)")
+        // 204 (no content) shouldn't happen for GeoJSON, but be defensive.
+        if http.statusCode == 204 { return [] }
+        guard (200..<300).contains(http.statusCode) else {
+            throw MetNoError.httpStatus(http.statusCode)
+        }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let envelope = try decoder.decode(MetAlertsResponse.self, from: data)
+        return envelope.features.map { $0.properties }
+    }
+
     /// Round to the decimals required by met.no (default 4) so cache keys match
     /// and the API doesn't reject overly precise queries.
     private static func roundedCoordinates(lat: Double, lon: Double) -> (Double, Double) {

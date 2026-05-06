@@ -21,4 +21,9 @@ enum Constants {
 
     /// Value below which precipitation rates / amounts are treated as "dry".
     static let precipitationNoiseFloor: Double = 0.05
+
+    /// Cadence for polling met.no MetAlerts. The API explicitly asks clients
+    /// not to hit it on every forecast refresh, so this is intentionally
+    /// longer than `minimumRefreshInterval`.
+    static let alertsRefreshInterval: TimeInterval = 20 * 60
 }

@@ -5,6 +5,8 @@ import SwiftUI
 struct CurrentWeatherView: View {
     @EnvironmentObject var store: WeatherStore
     @EnvironmentObject var settings: AppSettings
+    @EnvironmentObject var alertsStore: AlertsStore
+    @State private var showAlerts = false
 
     var body: some View {
         let f = WeatherFormatters(units: settings.unitSystem)
@@ -95,8 +97,49 @@ struct CurrentWeatherView: View {
             }
             // Soft drop-shadow on every text/icon for legibility on the sky.
             .shadow(color: .black.opacity(0.45), radius: 2, x: 0, y: 1)
+
+            // Top-right warning triangle when alerts cover this location.
+            if !alertsStore.alerts.isEmpty {
+                alertButton
+                    .padding(.top, 6)
+                    .padding(.trailing, 10)
+                    .frame(maxWidth: .infinity, alignment: .topTrailing)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .sheet(isPresented: $showAlerts) {
+            AlertsView(alerts: alertsStore.sorted) { showAlerts = false }
+        }
+    }
+
+    @ViewBuilder
+    private var alertButton: some View {
+        let count = alertsStore.alerts.count
+        Button {
+            showAlerts = true
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(
+                        .black,
+                        WeatherAlertStyle.headerColor(for: alertsStore.alerts)
+                    )
+                    .font(.system(size: 16, weight: .bold))
+                if count > 1 {
+                    Text("\(count)")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white)
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule().fill(.black.opacity(0.35))
+            )
+        }
+        .buttonStyle(.plain)
+        .help(L10n.t(.weatherAlerts))
     }
 
     // MARK: helpers
