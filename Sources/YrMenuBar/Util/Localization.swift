@@ -55,6 +55,8 @@ enum L10n {
         case language
         // Alerts
         case weatherAlerts, noAlerts, alertInstruction, alertConsequences, readMore
+        // Developer
+        case sectionDeveloper, useExampleAlerts, useExampleAlertsHelp
 
         var en: String {
             switch self {
@@ -129,6 +131,9 @@ enum L10n {
             case .alertInstruction: return "Advice"
             case .alertConsequences: return "Possible consequences"
             case .readMore: return "Read more on yr.no"
+            case .sectionDeveloper: return "Developer"
+            case .useExampleAlerts: return "Use example alerts endpoint"
+            case .useExampleAlertsHelp: return "Routes MetAlerts to /example.json so you can preview the warning UI without waiting for real warnings."
             }
         }
 
@@ -205,6 +210,9 @@ enum L10n {
             case .alertInstruction: return "Råd"
             case .alertConsequences: return "Mulige konsekvenser"
             case .readMore: return "Les mer på yr.no"
+            case .sectionDeveloper: return "Utvikler"
+            case .useExampleAlerts: return "Bruk eksempel-varsler"
+            case .useExampleAlertsHelp: return "Henter MetAlerts fra /example.json slik at du kan se varsel-UI uten å vente på ekte varsler."
             }
         }
     }

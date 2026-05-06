@@ -76,9 +76,11 @@ final class AlertsStore: ObservableObject {
 
     private func fetch(lat: Double, lon: Double, key: String) async {
         let lang = AppLanguage.resolved == .nb ? "no" : "en"
+        let useExample = settings?.useExampleAlerts ?? false
         do {
             let result = try await MetNoClient.shared.fetchAlerts(
-                lat: lat, lon: lon, languageCode: lang)
+                lat: lat, lon: lon, languageCode: lang,
+                useExampleEndpoint: useExample)
             self.alerts = result
             self.fetchedAt = Date()
             self.lastError = nil

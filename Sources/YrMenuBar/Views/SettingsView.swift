@@ -6,6 +6,7 @@ struct SettingsView: View {
     @EnvironmentObject var settings: AppSettings
     @EnvironmentObject var location: LocationProvider
     @EnvironmentObject var store: WeatherStore
+    @EnvironmentObject var alerts: AlertsStore
 
     var body: some View {
         TabView {
@@ -15,7 +16,7 @@ struct SettingsView: View {
                 .tabItem { Label(L10n.t(.sectionGeneral), systemImage: "gearshape") }
         }
         .tint(Color(NSColor.controlAccentColor))
-        .frame(width: 460, height: 420)
+        .frame(width: 460, height: 460)
     }
 }
 
@@ -133,6 +134,7 @@ private struct LocationSettings: View {
 
 private struct GeneralSettings: View {
     @EnvironmentObject var settings: AppSettings
+    @EnvironmentObject var alerts: AlertsStore
     @State private var launchAtLogin: Bool = false
 
     var body: some View {
@@ -149,7 +151,7 @@ private struct GeneralSettings: View {
                 .pickerStyle(.radioGroup)
             }
 
-            Section(L10n.t(.sectionLanguage)) {
+            Section {
                 Picker(L10n.t(.language), selection: Binding(
                     get: { settings.language },
                     set: { settings.language = $0 })) {
@@ -158,6 +160,16 @@ private struct GeneralSettings: View {
                     }
                 }
                 .pickerStyle(.radioGroup)
+            } header: {
+                // Option-click the section title toggles developer mode.
+                Text(L10n.t(.sectionLanguage))
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if NSEvent.modifierFlags.contains(.option) {
+                            settings.developerMode.toggle()
+                            NSSound.beep()
+                        }
+                    }
             }
 
             Section(L10n.t(.sectionStartup)) {
@@ -168,6 +180,21 @@ private struct GeneralSettings: View {
                         settings.launchAtLogin = newValue
                     }))
                     .toggleStyle(SwitchToggleStyle(tint: Color(NSColor.controlAccentColor)))
+            }
+
+            if settings.developerMode {
+                Section(L10n.t(.sectionDeveloper)) {
+                    Toggle(L10n.t(.useExampleAlerts), isOn: Binding(
+                        get: { settings.useExampleAlerts },
+                        set: { newValue in
+                            settings.useExampleAlerts = newValue
+                            alerts.refresh(force: true)
+                        }))
+                        .toggleStyle(SwitchToggleStyle(tint: Color(NSColor.controlAccentColor)))
+                    Text(L10n.t(.useExampleAlertsHelp))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .formStyle(.grouped)

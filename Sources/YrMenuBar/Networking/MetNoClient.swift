@@ -91,18 +91,24 @@ actor MetNoClient {
     /// Uses the GeoJSON beta endpoint so we get all relevant fields in one
     /// request without having to chase per-CAP XML files. Returns an empty
     /// array when the API has no active warnings for the location.
-    func fetchAlerts(lat: Double, lon: Double, languageCode: String) async throws -> [WeatherAlert] {
+    func fetchAlerts(lat: Double, lon: Double, languageCode: String, useExampleEndpoint: Bool = false) async throws -> [WeatherAlert] {
         let (rLat, rLon) = Self.roundedCoordinates(lat: lat, lon: lon)
-        guard var components = URLComponents(string: "https://api.met.no/weatherapi/metalerts/2.0/current.json") else {
+        let path = useExampleEndpoint
+            ? "https://api.met.no/weatherapi/metalerts/2.0/example.json"
+            : "https://api.met.no/weatherapi/metalerts/2.0/current.json"
+        guard var components = URLComponents(string: path) else {
             throw MetNoError.invalidResponse
         }
         // The MetAlerts API only accepts "no" or "en" for `lang`.
         let lang = (languageCode == "nb" || languageCode == "nn" || languageCode == "no") ? "no" : "en"
-        components.queryItems = [
-            URLQueryItem(name: "lat", value: String(format: "%.4f", rLat)),
-            URLQueryItem(name: "lon", value: String(format: "%.4f", rLon)),
-            URLQueryItem(name: "lang", value: lang)
-        ]
+        var items = [URLQueryItem(name: "lang", value: lang)]
+        // /example.json ignores lat/lon and returns the same demo set; only
+        // pass coordinates for the real endpoint.
+        if !useExampleEndpoint {
+            items.append(URLQueryItem(name: "lat", value: String(format: "%.4f", rLat)))
+            items.append(URLQueryItem(name: "lon", value: String(format: "%.4f", rLon)))
+        }
+        components.queryItems = items
         guard let url = components.url else { throw MetNoError.invalidResponse }
         var request = URLRequest(url: url)
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")

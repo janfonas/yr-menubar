@@ -20,6 +20,11 @@ final class AppSettings: ObservableObject {
     @AppStorage("launchAtLogin") var launchAtLoginStored: Bool = false
     @AppStorage("appLanguage") var languageRaw: String = AppLanguage.system.rawValue
 
+    // Hidden developer toggles — revealed by Option-clicking the Language
+    // section header in Settings.
+    @AppStorage("developerMode") var developerMode: Bool = false
+    @AppStorage("useExampleAlerts") var useExampleAlerts: Bool = false
+
     var unitSystem: UnitSystem {
         get { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
         set { unitSystemRaw = newValue.rawValue }
