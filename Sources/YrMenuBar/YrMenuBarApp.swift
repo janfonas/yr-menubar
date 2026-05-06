@@ -73,22 +73,28 @@ struct MenuBarLabel: View {
 
     @MainActor
     private static func renderBadge(weatherSymbol: String, tint: Color) -> NSImage? {
+        // The drawing canvas needs a little headroom on the top-right so the
+        // badge isn't clipped by the menu-bar's tight bounds.
+        let canvasSize = CGSize(width: 28, height: 22)
         let view = ZStack(alignment: .topTrailing) {
-            // Weather symbol in the menu-bar's "label" colour (matches what
-            // template rendering would give us on most macOS appearances).
+            // Weather symbol in the menu-bar's "label" colour.
             Image(systemName: weatherSymbol)
                 .symbolRenderingMode(.monochrome)
                 .foregroundStyle(Color(NSColor.labelColor))
                 .font(.system(size: 16, weight: .regular))
-                .frame(width: 22, height: 18, alignment: .center)
-            // A bold red `!` badge in the top-right corner.
+                .frame(width: 22, height: 18)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .padding(.top, 2)
+            // Bold coloured `!` badge sitting fully inside the canvas so it
+            // doesn't get clipped.
             Image(systemName: "exclamationmark.circle.fill")
                 .symbolRenderingMode(.palette)
                 .foregroundStyle(.white, tint)
                 .font(.system(size: 11, weight: .black))
-                .offset(x: 4, y: -3)
+                .padding(.top, 1)
+                .padding(.trailing, 0)
         }
-        .frame(width: 26, height: 18)
+        .frame(width: canvasSize.width, height: canvasSize.height)
 
         let renderer = ImageRenderer(content: view)
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
