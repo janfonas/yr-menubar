@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var store: WeatherStore
     @EnvironmentObject var settings: AppSettings
+    @Environment(\.openSettings) private var openSettings
     @State private var tab: Tab = .now
 
     enum Tab: String, CaseIterable { case now, forecast }
@@ -71,7 +72,9 @@ struct ContentView: View {
                 }
 
                 HStack {
-                    SettingsLink {
+                    Button {
+                        openSettingsWindow()
+                    } label: {
                         Label(L10n.t(.settings), systemImage: "gear")
                             .foregroundStyle(tab == .now ? .white : .primary)
                     }
@@ -87,6 +90,32 @@ struct ContentView: View {
                 .padding(.bottom, 12)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+    }
+
+    /// Opens the Settings scene reliably from a `MenuBarExtra` in an accessory
+    /// app (`LSUIElement`). `SettingsLink` is unreliable in that context on
+    /// macOS 14/15, so we trigger the standard AppKit selector after bringing
+    /// the app forward.
+    private func openSettingsWindow() {
+        // Use the SwiftUI environment action — this is the only reliable way
+        // to open the `Settings` scene from a `MenuBarExtra` popover in an
+        // `LSUIElement` app. `SettingsLink` is broken in that context.
+        openSettings()
+
+        // The popover is dismissed when the button is tapped, which can leave
+        // the Settings window hidden behind other apps. Bring the app forward
+        // and force the window to the front on the next runloop tick (after
+        // SwiftUI has actually instantiated it).
+        NSApp.activate(ignoringOtherApps: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            for window in NSApp.windows
+            where window.canBecomeKey
+                && !(window is NSPanel)
+                && window.contentViewController != nil {
+                window.makeKeyAndOrderFront(nil)
+                window.orderFrontRegardless()
+            }
         }
     }
 }
