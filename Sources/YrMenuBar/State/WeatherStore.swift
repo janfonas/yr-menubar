@@ -88,6 +88,17 @@ final class WeatherStore: ObservableObject {
         forecast?.properties.timeseries.first?.data.next1Hours?.details?.precipitationAmount
     }
 
+    /// All forecast entries that fall on the given calendar day, sorted by time.
+    /// met.no returns hourly resolution for ~48h so today/tomorrow get fine detail.
+    func hourlyEntries(for day: Date = Date()) -> [LocationForecast.TimeSeriesEntry] {
+        guard let forecast = forecast else { return [] }
+        let cal = Calendar.current
+        let start = cal.startOfDay(for: day)
+        return forecast.properties.timeseries
+            .filter { cal.isDate($0.time, inSameDayAs: start) }
+            .sorted { $0.time < $1.time }
+    }
+
     func dailySummaries(days: Int = 7) -> [DailySummary] {
         guard let forecast = forecast else { return [] }
         let cal = Calendar.current

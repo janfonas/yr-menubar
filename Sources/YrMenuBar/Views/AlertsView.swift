@@ -44,7 +44,13 @@ struct AlertsView: View {
                 }
             }
         }
-        .frame(width: 380, height: 420)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(NSColor.windowBackgroundColor))
+                .shadow(color: .black.opacity(0.35), radius: 12, y: 4)
+        )
+        .padding(8)
     }
 }
 
