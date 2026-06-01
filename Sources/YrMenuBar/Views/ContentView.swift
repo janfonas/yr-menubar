@@ -104,18 +104,34 @@ struct ContentView: View {
         openSettings()
 
         // The popover is dismissed when the button is tapped, which can leave
-        // the Settings window hidden behind other apps. Bring the app forward
-        // and force the window to the front on the next runloop tick (after
-        // SwiftUI has actually instantiated it).
+        // the Settings window hidden behind other apps. Bring the app forward,
+        // then poll for the Settings window: SwiftUI instantiates it
+        // asynchronously, so the exact moment it appears is timing-dependent.
+        // Polling a few times avoids racing a single fixed delay.
         NSApp.activate(ignoringOtherApps: true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            for window in NSApp.windows
-            where window.canBecomeKey
+        frontSettingsWindow(attemptsRemaining: 10)
+    }
+
+    /// Brings the first eligible Settings window to the front, retrying on the
+    /// main runloop until it has been instantiated by SwiftUI (or attempts run
+    /// out). Stops after fronting a single window so we never disturb other
+    /// app windows.
+    private func frontSettingsWindow(attemptsRemaining: Int) {
+        // The `Settings` scene exposes no public window identifier, so we
+        // heuristically pick the first non-panel window that can become key
+        // and already has its content view controller wired up.
+        if let window = NSApp.windows.first(where: { window in
+            window.canBecomeKey
                 && !(window is NSPanel)
-                && window.contentViewController != nil {
-                window.makeKeyAndOrderFront(nil)
-                window.orderFrontRegardless()
-            }
+                && window.contentViewController != nil
+        }) {
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+
+        guard attemptsRemaining > 0 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            frontSettingsWindow(attemptsRemaining: attemptsRemaining - 1)
         }
     }
 }
