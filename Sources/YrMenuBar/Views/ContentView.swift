@@ -4,6 +4,7 @@ struct ContentView: View {
     @EnvironmentObject var store: WeatherStore
     @EnvironmentObject var settings: AppSettings
     @EnvironmentObject var alertsStore: AlertsStore
+    @Environment(\.openSettings) private var openSettings
     @State private var tab: Tab = .now
     @State private var showAlerts = false
     @State private var showTodayDetails = false
@@ -77,7 +78,9 @@ struct ContentView: View {
                 }
 
                 HStack {
-                    SettingsLink {
+                    Button {
+                        openSettingsWindow()
+                    } label: {
                         Label(L10n.t(.settings), systemImage: "gear")
                             .foregroundStyle(tab == .now ? .white : .primary)
                     }
@@ -121,6 +124,48 @@ struct ContentView: View {
             // Reset transient panels so reopening the popover always starts fresh.
             showAlerts = false
             showTodayDetails = false
+        }
+    }
+
+    /// Opens the Settings scene reliably from a `MenuBarExtra` in an accessory
+    /// app (`LSUIElement`). `SettingsLink` is unreliable in that context on
+    /// macOS 14/15, so we trigger the standard AppKit selector after bringing
+    /// the app forward.
+    private func openSettingsWindow() {
+        // Use the SwiftUI environment action — this is the only reliable way
+        // to open the `Settings` scene from a `MenuBarExtra` popover in an
+        // `LSUIElement` app. `SettingsLink` is broken in that context.
+        openSettings()
+
+        // The popover is dismissed when the button is tapped, which can leave
+        // the Settings window hidden behind other apps. Bring the app forward,
+        // then poll for the Settings window: SwiftUI instantiates it
+        // asynchronously, so the exact moment it appears is timing-dependent.
+        // Polling a few times avoids racing a single fixed delay.
+        NSApp.activate(ignoringOtherApps: true)
+        frontSettingsWindow(attemptsRemaining: 10)
+    }
+
+    /// Brings the first eligible Settings window to the front, retrying on the
+    /// main runloop until it has been instantiated by SwiftUI (or attempts run
+    /// out). Stops after fronting a single window so we never disturb other
+    /// app windows.
+    private func frontSettingsWindow(attemptsRemaining: Int) {
+        // The `Settings` scene exposes no public window identifier, so we
+        // heuristically pick the first non-panel window that can become key
+        // and already has its content view controller wired up.
+        if let window = NSApp.windows.first(where: { window in
+            window.canBecomeKey
+                && !(window is NSPanel)
+                && window.contentViewController != nil
+        }) {
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+
+        guard attemptsRemaining > 0 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            frontSettingsWindow(attemptsRemaining: attemptsRemaining - 1)
         }
     }
 }
