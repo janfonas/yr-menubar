@@ -8,15 +8,30 @@ struct SettingsView: View {
     @EnvironmentObject var store: WeatherStore
     @EnvironmentObject var alerts: AlertsStore
 
+    /// Dismisses the hosting window. Injected by `StatusItemController`.
+    var onDone: () -> Void = {}
+
     var body: some View {
-        TabView {
-            LocationSettings()
-                .tabItem { Label(L10n.t(.sectionLocation), systemImage: "location") }
-            GeneralSettings()
-                .tabItem { Label(L10n.t(.sectionGeneral), systemImage: "gearshape") }
+        VStack(spacing: 0) {
+            TabView {
+                LocationSettings()
+                    .tabItem { Label(L10n.t(.sectionLocation), systemImage: "location") }
+                GeneralSettings()
+                    .tabItem { Label(L10n.t(.sectionGeneral), systemImage: "gearshape") }
+            }
+            .tint(Color(NSColor.controlAccentColor))
+
+            Divider()
+
+            HStack {
+                Spacer()
+                Button(L10n.t(.done), action: onDone)
+                    .keyboardShortcut(.defaultAction)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
-        .tint(Color(NSColor.controlAccentColor))
-        .frame(width: 460, height: 460)
+        .frame(width: 460, height: 500)
     }
 }
 

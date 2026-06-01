@@ -43,6 +43,7 @@ enum L10n {
         case feelsLike, fromDirection
         case dryNextHour, precipNextHour
         case todayDetails, hour, temperature, close
+        case done
         // Beaufort
         case bf0, bf1, bf2, bf3, bf4, bf5, bf6, bf7, bf8, bf9, bf10, bf11, bf12
         // Compass long names
@@ -88,6 +89,7 @@ enum L10n {
             case .hour: return "Hour"
             case .temperature: return "Temperature"
             case .close: return "Close"
+            case .done: return "Done"
             case .bf0: return "Calm"
             case .bf1: return "Light air"
             case .bf2: return "Light breeze"
@@ -173,6 +175,7 @@ enum L10n {
             case .hour: return "Time"
             case .temperature: return "Temperatur"
             case .close: return "Lukk"
+            case .done: return "Ferdig"
             case .bf0: return "Stille"
             case .bf1: return "Flau vind"
             case .bf2: return "Svak vind"

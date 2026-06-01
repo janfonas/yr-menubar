@@ -5,7 +5,8 @@ active weather warnings from [yr.no](https://yr.no) (Norwegian Meteorological
 Institute) using the public [`api.met.no`](https://api.met.no/weatherapi/locationforecast/2.0/documentation)
 service.
 
-- SwiftUI `MenuBarExtra` (macOS 14+, Sonoma)
+- Custom `NSStatusItem` + vibrant rounded `NSPanel` popover (macOS 14+,
+  Sonoma) with a spring "zoom" open animation and a right-click menu
 - yr.no-style "Now" view with full-bleed animated sky and Canvas-rendered
   weather illustrations (sun, clouds, rain, snow, thunder, fog)
 - 90-minute precipitation nowcast (Nordic radar coverage) with a compact
@@ -24,8 +25,8 @@ service.
 - Geo-location via CoreLocation, with a configurable fallback location
   (city search powered by `CLGeocoder`)
 - Metric / imperial units, English / Norwegian (bokmål) UI
-- Right-click the menu-bar icon for quick access to **Settings**, **About**
-  (with a link to this repository) and **Quit** — all localized
+- Popover footer buttons for **Settings**, **About** (with a link to this
+  repository) and **Quit** — all localized
 - "Launch at login" toggle (`SMAppService`)
 - Honours the met.no `Last-Modified` / `Expires` headers; coalesces
   concurrent refreshes
