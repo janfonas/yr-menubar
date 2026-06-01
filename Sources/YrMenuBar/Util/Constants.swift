@@ -26,4 +26,7 @@ enum Constants {
     /// not to hit it on every forecast refresh, so this is intentionally
     /// longer than `minimumRefreshInterval`.
     static let alertsRefreshInterval: TimeInterval = 20 * 60
+
+    /// Public source repository, surfaced from the About window.
+    static let repositoryURL = URL(string: "https://github.com/janfonas/yr-menubar")!
 }

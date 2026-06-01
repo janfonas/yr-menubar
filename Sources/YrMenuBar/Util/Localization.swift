@@ -36,6 +36,7 @@ enum L10n {
     enum Key {
         // UI
         case now, sevenDay, settings, quit, refresh, updatedAgo
+        case about, viewOnGitHub
         case today, tomorrow
         case wind, humidity, pressure, precip1h, cloud, uv
         case loading, error
@@ -65,6 +66,8 @@ enum L10n {
             case .sevenDay: return "7-day"
             case .settings: return "Settings…"
             case .quit: return "Quit"
+            case .about: return "About YrMenuBar"
+            case .viewOnGitHub: return "View source on GitHub"
             case .refresh: return "Refresh"
             case .updatedAgo: return "Updated"
             case .today: return "Today"
@@ -148,6 +151,8 @@ enum L10n {
             case .sevenDay: return "7 dager"
             case .settings: return "Innstillinger…"
             case .quit: return "Avslutt"
+            case .about: return "Om YrMenuBar"
+            case .viewOnGitHub: return "Se kildekoden på GitHub"
             case .refresh: return "Oppdater"
             case .updatedAgo: return "Oppdatert"
             case .today: return "I dag"

@@ -37,14 +37,42 @@ struct YrMenuBarApp: App {
                 .environmentObject(alerts)
                 .frame(width: 460)
         }
+
+        Window(L10n.t(.about), id: AboutWindow.id) {
+            AboutView()
+        }
+        .windowResizability(.contentSize)
     }
+}
+
+enum AboutWindow {
+    static let id = "about"
 }
 
 struct MenuBarLabel: View {
     @EnvironmentObject var store: WeatherStore
     @EnvironmentObject var alerts: AlertsStore
+    @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
+        labelImage
+            .contextMenu {
+                Button(L10n.t(.settings)) {
+                    openSettings()
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                Button(L10n.t(.about)) {
+                    openWindow(id: AboutWindow.id)
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                Divider()
+                Button(L10n.t(.quit)) { NSApp.terminate(nil) }
+            }
+    }
+
+    @ViewBuilder
+    private var labelImage: some View {
         let symbol = store.currentSymbolCode
         if alerts.alerts.isEmpty {
             // Plain SF Symbol \u2014 macOS will render it as a template so it

@@ -24,6 +24,8 @@ service.
 - Geo-location via CoreLocation, with a configurable fallback location
   (city search powered by `CLGeocoder`)
 - Metric / imperial units, English / Norwegian (bokmål) UI
+- Right-click the menu-bar icon for quick access to **Settings**, **About**
+  (with a link to this repository) and **Quit** — all localized
 - "Launch at login" toggle (`SMAppService`)
 - Honours the met.no `Last-Modified` / `Expires` headers; coalesces
   concurrent refreshes
