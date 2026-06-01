@@ -49,21 +49,16 @@ ad-hoc-codesigns it so Gatekeeper accepts after a right-click → Open.
 1. Download `YrMenuBar-<version>.dmg` from the [Releases](https://github.com/janfonas/yr-menubar/releases) page.
 2. Open the DMG and drag `YrMenuBar.app` into `/Applications`.
 3. **First launch on macOS 15 (Sequoia) or newer** — the build is unsigned (no
-   paid Apple Developer account), so Gatekeeper will refuse to open it and
-   suggest moving it to the Trash. Don't. Instead:
-   1. Click **Done** on the dialog.
-   2. Open **System Settings → Privacy & Security**.
-   3. Scroll to the bottom — you'll see *"YrMenuBar was blocked to protect your
-      Mac"*. Click **Open Anyway**, then confirm with Touch ID / your password.
-
-   On macOS 14 (Sonoma) the old gesture still works: right-click `YrMenuBar.app`
-   → **Open** → **Open** in the confirmation dialog.
-
-   Alternative one-liner (any macOS), strips the quarantine flag:
+   paid Apple Developer account), so Gatekeeper will refuse to open it. On
+   recent macOS versions the "Open Anyway" button and the right-click → **Open**
+   gesture no longer work for unsigned apps. The only reliable way to launch is
+   to strip the quarantine flag from a terminal:
 
    ```bash
    xattr -dr com.apple.quarantine /Applications/YrMenuBar.app
    ```
+
+   Then open `YrMenuBar.app` normally.
 
 4. Grant location permission when prompted (or set a fallback location in Settings).
 

@@ -44,4 +44,4 @@ jobs:
             "dist/YrMenuBar-${{ steps.version.outputs.version }}.zip" \
             --title "YrMenuBar ${GITHUB_REF_NAME}" \
             --generate-notes \
-            --notes "First-launch tip: after copying YrMenuBar.app to /Applications, **right-click → Open** the first time so macOS Gatekeeper accepts the unsigned build."
+            --notes "First-launch tip: after copying YrMenuBar.app to /Applications, run \`xattr -dr com.apple.quarantine /Applications/YrMenuBar.app\` in Terminal, then open it. The build is unsigned, and on recent macOS versions stripping the quarantine flag is the only reliable way to launch it."
