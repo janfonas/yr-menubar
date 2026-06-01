@@ -152,6 +152,13 @@ final class StatusItemController: NSObject, NSWindowDelegate {
             .target = self
         menu.addItem(withTitle: L10n.t(.about), action: #selector(menuOpenAbout), keyEquivalent: "")
             .target = self
+        // Hidden "Copy diagnostics" entry: only revealed when the menu is
+        // opened with Option held, to keep the everyday menu uncluttered.
+        if NSEvent.modifierFlags.contains(.option) {
+            menu.addItem(.separator())
+            menu.addItem(withTitle: "Copy diagnostics", action: #selector(menuCopyDiagnostics), keyEquivalent: "")
+                .target = self
+        }
         menu.addItem(.separator())
         menu.addItem(withTitle: L10n.t(.quit), action: #selector(menuQuit), keyEquivalent: "q")
             .target = self
@@ -165,6 +172,35 @@ final class StatusItemController: NSObject, NSWindowDelegate {
     @objc private func menuOpenSettings() { openSettings() }
     @objc private func menuOpenAbout() { showAbout() }
     @objc private func menuQuit() { NSApp.terminate(nil) }
+
+    @objc private func menuCopyDiagnostics() {
+        let report = makeDiagnosticsReport()
+        Diag.log.info("diagnostics:\n\(report, privacy: .public)")
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(report, forType: .string)
+    }
+
+    private func makeDiagnosticsReport() -> String {
+        let policy: String
+        switch NSApp.activationPolicy() {
+        case .regular: policy = "regular"
+        case .accessory: policy = "accessory"
+        case .prohibited: policy = "prohibited"
+        @unknown default: policy = "unknown"
+        }
+        return """
+        === YrMenuBar diagnostics ===
+        bundleId: \(Bundle.main.bundleIdentifier ?? "nil")
+        version: \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?") (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"))
+        bundlePath: \(Bundle.main.bundlePath)
+        appActive: \(NSApp.isActive)
+        activationPolicy: \(policy)
+        useGeoLocation: \(container.settings.useGeoLocation)
+        fallbackName: \(container.settings.fallbackName)
+        \(container.location.diagnosticsSummary)
+        """
+    }
 
     // MARK: - Panel show / hide
 
@@ -185,6 +221,13 @@ final class StatusItemController: NSObject, NSWindowDelegate {
         panel.alphaValue = 1
         panel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        Diag.log.info("showPanel appActive=\(NSApp.isActive, privacy: .public) useGeo=\(self.container.settings.useGeoLocation, privacy: .public)")
+        // The app is now active/frontmost, which is the only context where the
+        // macOS location prompt can appear. Request here (rather than at
+        // launch) so first-time users are asked when they open the popover.
+        if container.settings.useGeoLocation {
+            container.location.requestAuthorization()
+        }
         animateZoomIn()
         installGlobalClickMonitor()
     }

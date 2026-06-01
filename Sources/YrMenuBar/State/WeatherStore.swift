@@ -39,12 +39,18 @@ final class WeatherStore: ObservableObject {
             .compactMap { $0 }
             .removeDuplicates(by: { $0.distance(from: $1) < 500 })
             .sink { [weak self] _ in
+                // A new fix arrived: refresh the (reverse-geocoded) place name
+                // *and* the forecast for the new coordinates.
+                self?.updateLocationName()
                 self?.refreshIfNeeded(force: false)
             }
             .store(in: &cancellables)
 
         if settings.useGeoLocation {
-            location.requestLocation()
+            // Only resume updates if already authorized. Do NOT prompt here:
+            // this runs at launch while the app is a background accessory, and
+            // a prompt issued then is suppressed by macOS and blocks later ones.
+            location.startIfAuthorized()
         }
         startTimer()
         updateLocationName()
@@ -152,12 +158,12 @@ final class WeatherStore: ObservableObject {
             inFlight.cancel()
         }
         inFlightFetch = Task { [weak self] in
-            await self?.fetch(lat: coord.0, lon: coord.1, name: coord.2, key: key)
+            await self?.fetch(lat: coord.0, lon: coord.1, key: key)
             self?.inFlightFetch = nil
         }
     }
 
-    private func fetch(lat: Double, lon: Double, name: String, key: String) async {
+    private func fetch(lat: Double, lon: Double, key: String) async {
         isLoading = true
         defer { isLoading = false }
         do {
@@ -168,7 +174,9 @@ final class WeatherStore: ObservableObject {
             self.fetchedAt = Date()
             self.errorMessage = nil
             self.lastFetchKey = key
-            self.locationName = name
+            // Derive the display name from the single source of truth rather
+            // than the (possibly stale) name captured when the fetch started.
+            self.updateLocationName()
             if let lm = response.value(forHTTPHeaderField: "Last-Modified") {
                 self.lastModifiedHeader = lm
             }

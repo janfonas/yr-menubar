@@ -70,9 +70,32 @@ for b in "$BUNDLE_DIR"/*.bundle; do
     fi
 done
 
-# Ad-hoc codesign so Gatekeeper accepts after right-click → Open
-echo "==> Ad-hoc codesigning"
-codesign --force --deep --sign - "$APP"
+# Codesign the bundle.
+#
+# Location / other TCC permissions are bound to the app's *designated
+# requirement*. An ad-hoc signature (`--sign -`) has no stable identity, so its
+# requirement is just the binary's cdhash — which changes on every rebuild,
+# causing macOS to forget granted permissions (you get re-prompted each build).
+#
+# To keep permissions across local rebuilds, sign with a stable identity by
+# setting CODESIGN_IDENTITY to a certificate name in your keychain, e.g.:
+#   CODESIGN_IDENTITY="YrMenuBar Self-Signed" ./scripts/build-app.sh
+# Create a reusable self-signed cert once with: ./scripts/make-signing-cert.sh
+#
+# CI and unconfigured builds fall back to ad-hoc signing.
+#
+# The entitlements grant CoreLocation access. They are *required* whenever the
+# hardened runtime is enabled: otherwise locationd refuses to show the
+# authorization prompt ("Client has supported the hardened runtime but doesn't
+# have the entitlement, not sending #AuthPrompt").
+ENTITLEMENTS="$ROOT/Resources/YrMenuBar.entitlements"
+if [[ -n "${CODESIGN_IDENTITY:-}" ]]; then
+    echo "==> Codesigning with identity: $CODESIGN_IDENTITY"
+    codesign --force --deep --options runtime --entitlements "$ENTITLEMENTS" --sign "$CODESIGN_IDENTITY" "$APP"
+else
+    echo "==> Ad-hoc codesigning (set CODESIGN_IDENTITY for stable, permission-persisting signatures)"
+    codesign --force --deep --entitlements "$ENTITLEMENTS" --sign - "$APP"
+fi
 
 echo "==> Built $APP"
 du -sh "$APP"

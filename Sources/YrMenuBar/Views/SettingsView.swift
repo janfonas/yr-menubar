@@ -52,7 +52,7 @@ private struct LocationSettings: View {
                     get: { settings.useGeoLocation },
                     set: { newValue in
                         settings.useGeoLocation = newValue
-                        if newValue { location.requestLocation() }
+                        if newValue { location.requestAuthorization() }
                         store.updateLocationName()
                         store.refreshIfNeeded(force: true)
                     }))
