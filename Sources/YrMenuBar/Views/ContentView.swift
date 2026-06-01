@@ -3,8 +3,11 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var store: WeatherStore
     @EnvironmentObject var settings: AppSettings
+    @EnvironmentObject var alertsStore: AlertsStore
     @Environment(\.openSettings) private var openSettings
     @State private var tab: Tab = .now
+    @State private var showAlerts = false
+    @State private var showTodayDetails = false
 
     enum Tab: String, CaseIterable { case now, forecast }
 
@@ -60,7 +63,10 @@ struct ContentView: View {
 
                 Group {
                     switch tab {
-                    case .now: CurrentWeatherView()
+                    case .now:
+                        CurrentWeatherView(
+                            showAlerts: $showAlerts,
+                            showTodayDetails: $showTodayDetails)
                     case .forecast: ForecastView().padding(.horizontal, 14)
                     }
                 }
@@ -90,6 +96,34 @@ struct ContentView: View {
                 .padding(.bottom, 12)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
+            // Inline overlays so closing them does NOT also dismiss the
+            // menu-bar popover, and so they don't outlive a popover session.
+            if showTodayDetails {
+                Color.black.opacity(0.35)
+                    .ignoresSafeArea()
+                    .onTapGesture { showTodayDetails = false }
+                TodayDetailView(entries: store.hourlyEntries(for: Date()),
+                                units: settings.unitSystem) {
+                    showTodayDetails = false
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+
+            if showAlerts {
+                Color.black.opacity(0.35)
+                    .ignoresSafeArea()
+                    .onTapGesture { showAlerts = false }
+                AlertsView(alerts: alertsStore.sorted) { showAlerts = false }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.18), value: showTodayDetails)
+        .animation(.easeInOut(duration: 0.18), value: showAlerts)
+        .onAppear {
+            // Reset transient panels so reopening the popover always starts fresh.
+            showAlerts = false
+            showTodayDetails = false
         }
     }
 

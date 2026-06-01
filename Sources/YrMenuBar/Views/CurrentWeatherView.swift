@@ -6,7 +6,8 @@ struct CurrentWeatherView: View {
     @EnvironmentObject var store: WeatherStore
     @EnvironmentObject var settings: AppSettings
     @EnvironmentObject var alertsStore: AlertsStore
-    @State private var showAlerts = false
+    @Binding var showAlerts: Bool
+    @Binding var showTodayDetails: Bool
 
     var body: some View {
         let f = WeatherFormatters(units: settings.unitSystem)
@@ -76,12 +77,32 @@ struct CurrentWeatherView: View {
                     .padding(.horizontal, 14)
 
                 if let day = today {
-                    HStack(spacing: 12) {
-                        Label(f.tempShort(day.maxTemp), systemImage: "arrow.up")
-                        Label(f.tempShort(day.minTemp), systemImage: "arrow.down")
+                    Button {
+                        showTodayDetails = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Label(f.tempShort(day.maxTemp), systemImage: "arrow.up")
+                            Label(f.tempShort(day.minTemp), systemImage: "arrow.down")
+                            Spacer(minLength: 6)
+                            Text(L10n.t(.todayDetails))
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.white.opacity(0.95))
+                            Image(systemName: "chevron.right")
+                                .font(.caption2.weight(.bold))
+                                .foregroundStyle(.white.opacity(0.95))
+                        }
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.white.opacity(0.12))
+                        )
+                        .contentShape(RoundedRectangle(cornerRadius: 8))
                     }
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.white)
+                    .buttonStyle(.plain)
+                    .help(L10n.t(.todayDetails))
                     .padding(.horizontal, 14)
                     .padding(.top, 4)
                 }
@@ -107,9 +128,6 @@ struct CurrentWeatherView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .sheet(isPresented: $showAlerts) {
-            AlertsView(alerts: alertsStore.sorted) { showAlerts = false }
-        }
     }
 
     @ViewBuilder

@@ -12,7 +12,11 @@ service.
   inline chart
 - Wind rose with speed, direction, Beaufort name and units (m/s · mph)
 - 7-day forecast with min/max temperature, precipitation totals and
-  Norwegian weekday labels
+  Norwegian weekday labels — tap any day to expand an inline hour-by-hour
+  (or 6-hour, further out) breakdown
+- **Today's details** sheet — tap the high/low card on the Now tab to see
+  an hour-by-hour breakdown for the rest of today (temperature, precipitation,
+  wind)
 - **Weather warnings** from met.no MetAlerts — coloured `!` overlay on the
   menu-bar icon and a tappable triangle on the Now tab opens a sheet with
   every active warning (severity, area, advice, possible consequences,
