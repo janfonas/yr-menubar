@@ -114,7 +114,7 @@ private struct AlertRow: View {
                 }
             }
 
-            if let url = alert.web {
+            if let url = alert.web, url.scheme == "https" {
                 Link(L10n.t(.readMore), destination: url)
                     .font(.caption.weight(.medium))
                     .padding(.top, 2)

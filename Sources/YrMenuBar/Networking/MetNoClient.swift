@@ -13,12 +13,27 @@ struct CachedForecast: Codable {
 actor MetNoClient {
     static let shared = MetNoClient()
 
+    /// Shared ISO-8601 decoder. met.no timestamps are all ISO-8601, so we build
+    /// this once rather than per request.
+    static let decoder: JSONDecoder = {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .iso8601
+        return d
+    }()
+
     private let session: URLSession
     private let log = Logger(subsystem: "com.janfonas.YrMenuBar", category: "MetNoClient")
     private let userAgent: String
 
-    init(session: URLSession = .shared) {
-        self.session = session
+    init(session: URLSession? = nil) {
+        if let session = session {
+            self.session = session
+        } else {
+            let config = URLSessionConfiguration.default
+            config.timeoutIntervalForRequest = 15
+            config.waitsForConnectivity = true
+            self.session = URLSession(configuration: config)
+        }
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
         self.userAgent = "YrMenuBar/\(version) (https://github.com/janfonas/yr-menubar)"
     }
@@ -51,9 +66,7 @@ actor MetNoClient {
         guard (200..<300).contains(http.statusCode) else {
             throw MetNoError.httpStatus(http.statusCode)
         }
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        let forecast = try decoder.decode(LocationForecast.self, from: data)
+        let forecast = try Self.decoder.decode(LocationForecast.self, from: data)
         return (forecast, http)
     }
 
@@ -81,9 +94,7 @@ actor MetNoClient {
         guard (200..<300).contains(http.statusCode) else {
             throw MetNoError.httpStatus(http.statusCode)
         }
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(Nowcast.self, from: data)
+        return try Self.decoder.decode(Nowcast.self, from: data)
     }
 
     /// Fetch active MetAlerts (weather warnings) covering the given coordinate.
@@ -122,9 +133,7 @@ actor MetNoClient {
         guard (200..<300).contains(http.statusCode) else {
             throw MetNoError.httpStatus(http.statusCode)
         }
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        let envelope = try decoder.decode(MetAlertsResponse.self, from: data)
+        let envelope = try Self.decoder.decode(MetAlertsResponse.self, from: data)
         return envelope.features.map { $0.properties }
     }
 
@@ -152,6 +161,17 @@ enum MetNoError: LocalizedError {
 }
 
 enum ForecastCache {
+    private static let decoder: JSONDecoder = {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .iso8601
+        return d
+    }()
+    private static let encoder: JSONEncoder = {
+        let e = JSONEncoder()
+        e.dateEncodingStrategy = .iso8601
+        return e
+    }()
+
     static var cacheURL: URL {
         let base = try? FileManager.default.url(
             for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
@@ -163,14 +183,10 @@ enum ForecastCache {
 
     static func load() -> CachedForecast? {
         guard let data = try? Data(contentsOf: cacheURL) else { return nil }
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
         return try? decoder.decode(CachedForecast.self, from: data)
     }
 
     static func save(_ cached: CachedForecast) {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
         if let data = try? encoder.encode(cached) {
             try? data.write(to: cacheURL, options: .atomic)
         }
