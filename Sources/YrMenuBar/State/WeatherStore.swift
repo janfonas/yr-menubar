@@ -37,7 +37,8 @@ final class WeatherStore: ObservableObject {
 
         location.$currentLocation
             .compactMap { $0 }
-            .removeDuplicates(by: { $0.distance(from: $1) < 500 })
+            .map { String(format: "%.3f,%.3f", $0.coordinate.latitude, $0.coordinate.longitude) }
+            .removeDuplicates()
             .sink { [weak self] _ in
                 // A new fix arrived: refresh the (reverse-geocoded) place name
                 // *and* the forecast for the new coordinates.
@@ -205,11 +206,11 @@ final class WeatherStore: ObservableObject {
     func updateLocationName() {
         guard let settings = settings else { return }
         if settings.useGeoLocation, let loc = location?.currentLocation {
-            CLGeocoder().reverseGeocodeLocation(loc) { [weak self] placemarks, _ in
-                if let p = placemarks?.first {
-                    let name = p.locality ?? p.name ?? p.administrativeArea ?? "Current location"
-                    DispatchQueue.main.async { self?.locationName = name }
-                }
+            Task { [weak self] in
+                let placemarks = try? await CLGeocoder().reverseGeocodeLocation(loc)
+                guard let p = placemarks?.first else { return }
+                let name = p.locality ?? p.name ?? p.administrativeArea ?? "Current location"
+                self?.locationName = name
             }
         } else {
             self.locationName = settings.fallbackName

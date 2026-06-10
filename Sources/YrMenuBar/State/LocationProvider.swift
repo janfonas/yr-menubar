@@ -3,6 +3,7 @@ import CoreLocation
 import Combine
 import AppKit
 
+@MainActor
 final class LocationProvider: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var currentLocation: CLLocation?
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
@@ -97,10 +98,10 @@ final class LocationProvider: NSObject, ObservableObject, CLLocationManagerDeleg
 
     // MARK: CLLocationManagerDelegate
 
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         let status = manager.authorizationStatus
         Diag.location.info("didChangeAuthorization -> \(status.diagName, privacy: .public)")
-        DispatchQueue.main.async {
+        MainActor.assumeIsolated {
             self.authorizationStatus = status
             // Once the user has answered the prompt, drop back to an accessory
             // app so we keep no Dock icon / app menu.
@@ -120,21 +121,21 @@ final class LocationProvider: NSObject, ObservableObject, CLLocationManagerDeleg
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let loc = locations.last else { return }
         Diag.location.info("didUpdateLocations \(loc.coordinate.latitude, privacy: .public),\(loc.coordinate.longitude, privacy: .public)")
-        DispatchQueue.main.async {
+        MainActor.assumeIsolated {
             self.currentLocation = loc
             self.lastError = nil
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         // A transient "location unknown" is expected while CoreLocation warms
         // up; keep updates running so a later fix can still arrive. Only record
         // the message for diagnostics.
         Diag.location.error("didFailWithError \(error.localizedDescription, privacy: .public)")
-        DispatchQueue.main.async {
+        MainActor.assumeIsolated {
             self.lastError = error.localizedDescription
         }
     }

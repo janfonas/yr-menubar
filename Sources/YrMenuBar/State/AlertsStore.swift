@@ -29,7 +29,8 @@ final class AlertsStore: ObservableObject {
 
         location.$currentLocation
             .compactMap { $0 }
-            .removeDuplicates(by: { $0.distance(from: $1) < 500 })
+            .map { String(format: "%.3f,%.3f", $0.coordinate.latitude, $0.coordinate.longitude) }
+            .removeDuplicates()
             .sink { [weak self] _ in self?.refresh(force: false) }
             .store(in: &cancellables)
 
